@@ -72,7 +72,7 @@ export default function Pathaan() {
         <h1 className="text-4xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-red-400 to-orange-600 bg-clip-text text-transparent">
           Pathaan
         </h1>
-        <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+        <p className="text-lg md:text-xl text-gray-300 mx-auto mb-8">
           Precision Android Targeted for Hostile Annihilation and Nullification - An advanced robotic security system.
         </p>
         

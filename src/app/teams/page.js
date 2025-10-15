@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Fade } from "react-awesome-reveal";
 import TeamCard from "@/components/TeamCard";
-import Core2024 from "@/data/team/Core2024";
-import Exec2024 from "@/data/team/Exec2024";
+import Core2024 from "@/data/team/Core2025";
+import Exec2024 from "@/data/team/Exec2025";
 import FacultyList from "@/data/team/Faculty";
 
 export default function Teams() {
@@ -13,7 +13,7 @@ export default function Teams() {
     window.scrollTo(0, 0);
   }, []);
   
-  const [selectYear, setSelectYear] = useState("2024");
+  const [selectYear, setSelectYear] = useState("2025");
 
   return (
     <div className="md:mt-10 relative min-h-screen bg-gradient-to-br from-[#000000] via-[#020108] to-[#0a051a]">
@@ -35,14 +35,15 @@ export default function Teams() {
 
       {/* Data */}
       <div className="relative">
-        <div className="flex md:justify-end pt-24 px-10 md:px-20 mb-5">
+        <div className="flex md:justify-end pt-24 px-20 md:px-50 mb-5 ">
           <form className="max-w-2xl ">
             <select
               name="year"
               id="year"
               onChange={(e) => setSelectYear(e.target.value)}
-              className="bg-black border hover:bg-gray-900 border-gray-300 text-white text-sm md:text-lg rounded-lg block p-2  md:px-14 cursor-pointer  focus:outline-none"
+              className="bg-black border hover:bg-gray-900 border-gray-300 text-white text-sm md:text-lg rounded-lg block p-2  md:px-14 cursor-pointer  focus:outline-none "
             >
+              <option value="2025">2025-2026</option>
               <option value="2024">2024-2025</option>
               <option value="2023">2023-2024</option>
             </select>
@@ -75,8 +76,8 @@ export default function Teams() {
           </div>
         </div>
 
-        {/* 2024 Teams */}
-        {selectYear == "2024" && (
+        {/* 2025 Teams */}
+        {selectYear == "2025" && (
           <div className="">
             <div className="  pb-16">
               <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -101,7 +102,7 @@ export default function Teams() {
               </div>
             </div>
 
-            {/* Core Team 2024 */}
+            {/* Core Team 2025 */}
             <div className=" py-24 sm:py-12">
               <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <div className="mx-auto  lg:mx-0 text-center">
@@ -122,6 +123,43 @@ export default function Teams() {
                       />
                     </Fade>
                   ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2024 Teams - Placeholder */}
+        {selectYear == "2024" && (
+          <div className="">
+            <div className="  pb-16 ">
+              <div className="mx-auto max-w-7xl px-6 lg:px-8">
+                <div className="mx-auto  lg:mx-0 text-center">
+                  <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                    Executive Team
+                  </h2>
+                </div>
+                <div className="flex flex-wrap justify-center py-5">
+                  <p className="text-white text-center">
+                    2024 team data will be added soon...
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Core Team 2024 */}
+            <div className=" py-24 sm:py-12">
+              <div className="mx-auto max-w-7xl px-6 lg:px-8">
+                <div className="mx-auto  lg:mx-0 text-center">
+                  <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                    Core Team
+                  </h2>
+                </div>
+
+                <div className="flex justify-center flex-wrap py-7">
+                  <p className="text-white text-center">
+                    2024 core team data will be added soon...
+                  </p>
                 </div>
               </div>
             </div>

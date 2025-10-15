@@ -78,7 +78,7 @@ export default function Quill() {
         <h1 className="text-4xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-600 bg-clip-text text-transparent">
           Quill
         </h1>
-        <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+        <p className="text-lg md:text-xl text-gray-300 mx-auto mb-8">
           A Robot that Writes Your Assignments in Your Handwriting. Just Submit Your Questions in any format.
         </p>
         

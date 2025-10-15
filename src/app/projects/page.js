@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import LiveProjectsData from "@/data/LiveProjectsData";
-import PassionProjectsData from "@/data/PassionProjectsData";
+// import PassionProjectsData from "@/data/PassionProjectsData";
 
 export default function ProjectsPage() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -16,7 +16,7 @@ export default function ProjectsPage() {
 
   const allProjects = [
     ...LiveProjectsData.map(p => ({ ...p, category: 'live' })),
-    ...PassionProjectsData.map(p => ({ ...p, category: 'passion' }))
+    // ...PassionProjectsData.map(p => ({ ...p, category: 'passion' })) <--pojects exluded 
   ];
 
   const filteredProjects = activeCategory === 'all' 
@@ -26,7 +26,7 @@ export default function ProjectsPage() {
   const categories = [
     { id: 'all', label: 'All Projects', count: allProjects.length },
     { id: 'live', label: 'Live Projects', count: LiveProjectsData.length },
-    { id: 'passion', label: 'Passion Projects', count: PassionProjectsData.length }
+    // { id: 'passion', label: 'Passion Projects', count: PassionProjectsData.length }
   ];
 
   return (
