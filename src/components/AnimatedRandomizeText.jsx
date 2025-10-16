@@ -18,26 +18,29 @@ export default function AnimatedRandomizeText() {
     closeParen: '#007CFF'
   };
 
+  // Responsive sizing for all letter SVGs
+  // - Height scales with viewport using clamp to avoid overflow on small screens
+  // - Width auto to preserve aspect ratio (viewBox handles scaling)
+  const letterSvgClass = "inline-block h-[clamp(24px,8vw,96px)] w-auto";
+
   return (
     <motion.div 
-      className="flex items-center justify-center mb-8"
+      className="flex items-center justify-center mb-8 px-2"
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 1, delay: 0.2 }}
     >
-      <div className="flex items-center">
+      <div className="flex items-center justify-center flex-nowrap gap-[clamp(2px,1vw,8px)]">
         {/* Letter R */}
         <motion.div 
-          className="relative inline-block mx-1"
+          className="relative inline-block"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           <svg
-            width="88"
-            height="108"
             viewBox="0 0 64 64"
-            className="inline-block"
+            className={letterSvgClass}
             style={{
               filter: `drop-shadow(0 0 8px ${gradientColors.r}40)`,
             }}
@@ -70,16 +73,14 @@ export default function AnimatedRandomizeText() {
 
         {/* Letter A */}
         <motion.div 
-          className="relative inline-block mx-1"
+          className="relative inline-block"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
           <svg
-            width="88"
-            height="108"
             viewBox="0 0 64 64"
-            className="inline-block"
+            className={letterSvgClass}
             style={{
               filter: `drop-shadow(0 0 8px ${gradientColors.a}40)`,
             }}
@@ -112,16 +113,14 @@ export default function AnimatedRandomizeText() {
 
         {/* Letter N */}
         <motion.div 
-          className="relative inline-block mx-1"
+          className="relative inline-block"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
           <svg
-            width="88"
-            height="108"
             viewBox="0 0 64 64"
-            className="inline-block"
+            className={letterSvgClass}
             style={{
               filter: `drop-shadow(0 0 8px ${gradientColors.n}40)`,
             }}
@@ -154,16 +153,14 @@ export default function AnimatedRandomizeText() {
 
         {/* Letter D */}
         <motion.div 
-          className="relative inline-block mx-1"
+          className="relative inline-block"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
           <svg
-            width="88"
-            height="108"
             viewBox="0 0 64 64"
-            className="inline-block"
+            className={letterSvgClass}
             style={{
               filter: `drop-shadow(0 0 8px ${gradientColors.d}40)`,
             }}
@@ -196,16 +193,14 @@ export default function AnimatedRandomizeText() {
 
         {/* Letter O */}
         <motion.div 
-          className="relative inline-block mx-1"
+          className="relative inline-block"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
         >
           <svg
-            width="88"
-            height="108"
             viewBox="0 0 64 64"
-            className="inline-block"
+            className={letterSvgClass}
             style={{
               filter: `drop-shadow(0 0 8px ${gradientColors.o}40)`,
             }}
@@ -247,16 +242,14 @@ export default function AnimatedRandomizeText() {
 
         {/* Letter M */}
         <motion.div 
-          className="relative inline-block mx-1"
+          className="relative inline-block"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
         >
           <svg
-            width="96"
-            height="108"
             viewBox="0 0 64 64"
-            className="inline-block"
+            className={letterSvgClass}
             style={{
               filter: `drop-shadow(0 0 8px ${gradientColors.m}40)`,
             }}
@@ -289,16 +282,14 @@ export default function AnimatedRandomizeText() {
 
         {/* Letter I */}
         <motion.div 
-          className="relative inline-block mx-1"
+          className="relative inline-block"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.9 }}
         >
           <svg
-            width="90"
-            height="114"
             viewBox="0 0 64 64"
-            className="inline-block"
+            className={letterSvgClass}
             style={{
               filter: `drop-shadow(0 0 8px ${gradientColors.i}40)`,
             }}
@@ -331,16 +322,14 @@ export default function AnimatedRandomizeText() {
 
         {/* Letter Z */}
         <motion.div 
-          className="relative inline-block mx-1"
+          className="relative inline-block"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1.0 }}
         >
           <svg
-            width="88"
-            height="108"
             viewBox="0 0 64 64"
-            className="inline-block"
+            className={letterSvgClass}
             style={{
               filter: `drop-shadow(0 0 8px ${gradientColors.z}40)`,
             }}
@@ -373,16 +362,14 @@ export default function AnimatedRandomizeText() {
 
         {/* Letter E */}
         <motion.div 
-          className="relative inline-block mx-1"
+          className="relative inline-block"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1.1 }}
         >
           <svg
-            width="84"
-            height="108"
             viewBox="0 0 64 64"
-            className="inline-block"
+            className={letterSvgClass}
             style={{
               filter: `drop-shadow(0 0 8px ${gradientColors.e}40)`,
             }}
@@ -415,16 +402,14 @@ export default function AnimatedRandomizeText() {
 
         {/* Parentheses () */}
         <motion.div 
-          className="relative inline-block mx-1"
+          className="relative inline-block"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1.2 }}
         >
           <svg
-            width="88"
-            height="108"
             viewBox="0 0 64 64"
-            className="inline-block"
+            className={letterSvgClass}
             style={{
               filter: `drop-shadow(0 0 8px ${gradientColors.openParen}40)`,
             }}

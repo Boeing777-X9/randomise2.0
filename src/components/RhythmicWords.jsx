@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+"use client";
+
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styled from 'styled-components';
 
@@ -26,10 +28,28 @@ const RhythmicWords = () => {
     return () => clearInterval(interval);
   }, [words.length]);
 
+  // Scale particle burst distance based on heading font size for consistency
+  const headingRef = useRef(null);
+  const [particleDistance, setParticleDistance] = useState(80);
+
+  useEffect(() => {
+    const calc = () => {
+      if (!headingRef.current) return;
+      const fs = parseFloat(getComputedStyle(headingRef.current).fontSize || '48');
+      // Distance ~ 1.4x font size, clamped for sanity
+      const dist = Math.max(40, Math.min(140, fs * 1.4));
+      setParticleDistance(dist);
+    };
+    const r = () => requestAnimationFrame(calc);
+    calc();
+    window.addEventListener('resize', r);
+    return () => window.removeEventListener('resize', r);
+  }, []);
+
   return (
     <StyledWrapper>
       <div className="rhythmic-container">
-        <h1 className="text-[10vw] text-center md:text-[15vw] lg:text-5xl leading-none select-none tracking-tightest font-extrabold flex flex-col lg:flex-row mt-4 gap-2 justify-center items-center">
+        <h1 ref={headingRef} className="text-center leading-none select-none tracking-tightest font-extrabold flex flex-col lg:flex-row mt-2 sm:mt-4 justify-center items-center text-[clamp(28px,9vw,72px)] gap-[clamp(4px,2vw,16px)]">
           {words.map((word, index) => (
             <motion.span
               key={`${word.text}-${cycle}`}
@@ -123,8 +143,8 @@ const RhythmicWords = () => {
                         }}
                         animate={{ 
                           scale: [0, 1, 0],
-                          x: Math.cos((i * 60) * Math.PI / 180) * 80,
-                          y: Math.sin((i * 60) * Math.PI / 180) * 80,
+                          x: Math.cos((i * 60) * Math.PI / 180) * particleDistance,
+                          y: Math.sin((i * 60) * Math.PI / 180) * particleDistance,
                           opacity: [0, 0.6, 0]
                         }}
                         exit={{ 
@@ -173,7 +193,7 @@ const StyledWrapper = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2rem;
+  gap: clamp(0.5rem, 3vw, 2rem);
   }
 
   .word-span {
@@ -245,13 +265,13 @@ const StyledWrapper = styled.div`
 
   .progress-container {
     display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
+    gap: clamp(0.375rem, 1.5vw, 1rem);
+    margin-top: clamp(0.5rem, 1.5vw, 1rem);
   }
 
   .progress-dot {
-    width: 12px;
-    height: 12px;
+    width: clamp(6px, 1.6vw, 12px);
+    height: clamp(6px, 1.6vw, 12px);
     border-radius: 50%;
     background: currentColor;
     box-shadow: 0 0 5px currentColor;
@@ -260,12 +280,12 @@ const StyledWrapper = styled.div`
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .progress-container {
-      gap: 0.5rem;
+      gap: clamp(0.25rem, 1.5vw, 0.5rem);
     }
     
     .progress-dot {
-      width: 8px;
-      height: 8px;
+      width: clamp(6px, 2vw, 8px);
+      height: clamp(6px, 2vw, 8px);
     }
   }
 `;
