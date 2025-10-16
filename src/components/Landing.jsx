@@ -58,7 +58,7 @@ export default function Landing() {
 
         {/* Main Content Container with Parallax */}
         <FloatingElement depth={1.2} className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 pb-16 sm:pb-24 flex items-center place-content-center min-h-lvh w-full lg:flex-row flex-col-reverse lg:px-8 lg:py-8" absolute={false}>
-          <FloatingElement depth={1.5} className="mx-auto max-w-7xl px-2 sm:px-4 pb-2 md:pb-4 flex flex-row lg:px-8 lg:pt-10 lg:mt-0 pt-10 sm:pt-16" absolute={false}>
+          <FloatingElement depth={1.5} className="mx-auto max-w-7xl px-2 sm:px-4 pb-2 md:pb-4 flex-row lg:px-8 lg:pt-10 lg:mt-0 pt-10 sm:pt-16" absolute={false}>
             {/* Logo Container with Enhanced Parallax */}
             <FloatingElement depth={2} className="flex place-content-center" absolute={false}>
               <motion.div 
