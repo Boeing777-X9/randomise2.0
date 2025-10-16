@@ -16,7 +16,7 @@ export default function ProjectsPage() {
 
   const allProjects = [
     ...LiveProjectsData.map(p => ({ ...p, category: 'live' })),
-    // ...PassionProjectsData.map(p => ({ ...p, category: 'passion' })) <--pojects exluded 
+    // ...PassionProjectsData.map(p => ({ ...p, category: 'passion' })) <--pojects exlcuded 
   ];
 
   const filteredProjects = activeCategory === 'all' 
@@ -26,7 +26,7 @@ export default function ProjectsPage() {
   const categories = [
     { id: 'all', label: 'All Projects', count: allProjects.length },
     { id: 'live', label: 'Live Projects', count: LiveProjectsData.length },
-    // { id: 'passion', label: 'Passion Projects', count: PassionProjectsData.length }
+    // { id: 'passion', label: 'Passion Projects', count: PassionProjectsData.length } <-- projects excluded
   ];
 
   return (

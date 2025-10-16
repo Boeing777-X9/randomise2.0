@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Fade } from "react-awesome-reveal";
 import TeamCard from "@/components/TeamCard";
-import Core2024 from "@/data/team/Core2025";
-import Exec2024 from "@/data/team/Exec2025";
+import Core2025 from "@/data/team/Core2025";
+import Exec2025 from "@/data/team/Exec2025";
 import FacultyList from "@/data/team/Faculty";
 
 export default function Teams() {
@@ -87,7 +87,7 @@ export default function Teams() {
                   </h2>
                 </div>
                 <div className="flex flex-wrap  justify-center py-5">
-                  {Exec2024.map((data) => (
+                  {Exec2025.map((data) => (
                     <Fade delay={100} key={data.id}>
                       <TeamCard
                         name={data.name}
@@ -112,7 +112,7 @@ export default function Teams() {
                 </div>
 
                 <div className="flex justify-center flex-wrap py-7">
-                  {Core2024.map((data) => (
+                  {Core2025.map((data) => (
                     <Fade delay={100} key={data.id}>
                       <TeamCard
                         name={data.name}

@@ -1,15 +1,7 @@
-const Core2024 = [
+const Core2025 = [
+
   {
     id: 1,
-    name: "Rashi Srivastava",
-    role: "Deputy Managing Director",
-    imageUrl:
-      "https://res.cloudinary.com/dx4fpfm1w/image/upload/v1754720951/rashi_srivastava_dmd_pyzygj.png",
-    github: "https://github.com/RashiSrivastava1806",
-    linkedinUrl: "",
-  },
-  {
-    id: 2,
     name: "Kavya Joshi",
     role: "Head of Projects",
     imageUrl:
@@ -18,7 +10,7 @@ const Core2024 = [
     linkedinUrl: "https://www.linkedin.com/in/kavya-joshi-25b591246/",
   },
   {
-    id: 3,
+    id: 2,
     name: "Aryan Sharma",
     role: "Head of Projects",
     imageUrl:
@@ -27,7 +19,7 @@ const Core2024 = [
     linkedinUrl: "https://www.linkedin.com/in/sharmaaryan1712/",
   },
   {
-    id: 4,
+    id: 3,
     name: "Praver Agarwal",
     role: "Head of Projects",
     imageUrl:
@@ -36,7 +28,7 @@ const Core2024 = [
     linkedinUrl: "https://www.linkedin.com/in/praver-agarwal-b25505338/",
   },
  {
-    id: 5,
+    id: 4,
     name: "Vijayant",
     role: "Head of Projects",
     imageUrl:
@@ -46,7 +38,7 @@ const Core2024 = [
   },
   {
 
-    id: 6,
+    id: 5,
     name: "Aditya Mukherjee",
     role: "Webmaster",
     imageUrl:
@@ -55,7 +47,7 @@ const Core2024 = [
     linkedinUrl: "https://www.linkedin.com/in/adityamukherjee100?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app",
   },
   {
-    id: 7,
+    id: 6,
     name: "Aashi Tiwari",
     role: "Webmaster",
     imageUrl:
@@ -64,13 +56,22 @@ const Core2024 = [
     linkedinUrl: "https://www.linkedin.com/in/aashi-tiwari-682bba353/?trk=opento_sprofile_topcard",
   },
   {
-    id: 8,
+    id: 7,
     name: "Bhavika Garg",
     role: "Webmaster",
     imageUrl:
       "https://res.cloudinary.com/dx4fpfm1w/image/upload/v1754720930/bhavika_garg_wbm_bhryr4.png",
     github: "https://github.com/bhavikagarg117",
     linkedinUrl: "https://www.linkedin.com/in/bhavika-garg-923a82360/",
+  },
+  {
+    id: 8,
+    name: "Aryan Chopra",
+    role: "Head of Events",
+    imageUrl:
+    "https://res.cloudinary.com/dx4fpfm1w/image/upload/v1754720922/aryan_chopra_events_x02pdf.png",
+    github: "https://github.com/Perfectto1",
+    linkedinUrl: "https://www.linkedin.com/in/aryan-chopra-bb7923219?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app",
   },
   {
     id: 9,
@@ -83,12 +84,12 @@ const Core2024 = [
   },
   {
     id: 10,
-    name: "Aryan Chopra",
-    role: "Head of Events",
+    name: "Rashi Srivastava",
+    role: "Head of Operations",
     imageUrl:
-      "https://res.cloudinary.com/dx4fpfm1w/image/upload/v1754720922/aryan_chopra_events_x02pdf.png",
-    github: "https://github.com/Perfectto1",
-    linkedinUrl: "https://www.linkedin.com/in/aryan-chopra-bb7923219?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app",
+      "https://res.cloudinary.com/dx4fpfm1w/image/upload/v1754720951/rashi_srivastava_dmd_pyzygj.png",
+    github: "https://github.com/RashiSrivastava1806",
+    linkedinUrl: "",
   },
   {
     id: 11,
@@ -97,7 +98,7 @@ const Core2024 = [
     imageUrl:
       "https://res.cloudinary.com/dx4fpfm1w/image/upload/v1754720939/parikshit_singh_ops_pja9ef.png",
     github: "https://github.com/Parikshits6116",
-    linkedinUrl: "www.linkedin.com/in/parikshit-singh-7a9a64325",
+    linkedinUrl: "https://www.linkedin.com/in/parikshit-singh-7a9a64325",
   },
   {
     id: 12,
@@ -158,7 +159,7 @@ const Core2024 = [
     name: "Kirti Chourasia",
     role: "Head of Outreach & Sponsorships",
     imageUrl:
-      "https://res.cloudinary.com/dx4fpfm1w/image/upload/v1754720939/kirti_chaurasiya_spnr_dzgvbb.png",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760515710/image_2025-10-15_133825676_prubzn.png",
     github: "https://github.com/kir-bot",
     linkedinUrl: "https://www.linkedin.com/in/kirti-chourasia-372b03316",
   },
@@ -167,7 +168,7 @@ const Core2024 = [
     name: "Aliza",
     role: "Head of Outreach & Sponsorships",
     imageUrl:
-      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760420010/WhatsApp_Image_2025-10-14_at_10.02.40_7ee9411c_g4pkux.jpg",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760515865/image_2025-10-15_134102526_z7kig4.png",
     github: "",
     linkedinUrl: "",
   },
@@ -230,7 +231,7 @@ const Core2024 = [
     name: "Alisha Raj",
     role: "Head of Editorial",
     imageUrl:
-      "https://res.cloudinary.com/dx4fpfm1w/image/upload/v1754720927/alisha_raj_edt_jk2rkq.png",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760515571/image_2025-10-15_133603119_lsghuw.png",
     github: "https://github.com/Dxpressedkiddo",
     linkedinUrl: "https://www.linkedin.com/in/alisha-raj-81740b339/",
   },
@@ -284,7 +285,7 @@ const Core2024 = [
     name: "Pragya Mridu",
     role: "Head of Social Media ",
     imageUrl:
-      "https://res.cloudinary.com/dx4fpfm1w/image/upload/v1754720941/pragya_mridu_smd_kisbw8.jpg",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760531053/image_2025-10-15_175408537_hvhim6.png",
     github: "https://github.com/pragyamridu",
     linkedinUrl: "https://www.linkedin.com/in/pragya-mridu-271254317?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app",
   },
@@ -332,4 +333,4 @@ const Core2024 = [
   }
 ];
 
-export default Core2024;
+export default Core2025;

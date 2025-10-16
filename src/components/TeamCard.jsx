@@ -33,17 +33,20 @@ function TeamCard({
   ];
 
   return (
-    <div className="bg-gray-800 max-w-max p-6 text-white inline-block m-6 rounded-lg text-center hover:scale-105">
-      <div className="aspect-square overflow-hidden rounded-tl-3xl object-cover rounded-br-3xl flex justify-center mb-5">
+    <div className="bg-gray-800 w-60 p-6 text-white inline-block m-6 rounded-lg text-center transition-transform duration-200 hover:scale-105">
+      <div className="aspect-square overflow-hidden rounded-tl-3xl rounded-br-3xl flex justify-center mb-5">
         <img
           className="w-36 h-36 md:w-44 md:h-44 object-cover"
           src={imgSrc}
-          alt=""
+          alt={`Profile of ${name}`}
         />
       </div>
-      <h2 className="text-lg md:text-xl mb-3 mt-2">{name}</h2>
-      <h5 className=" text-gray-300 text-xs md:text-sm">{position}</h5>
-      <div className="flex justify-center mt-3">
+      <div className="min-h-20">
+        <h2 className="text-lg md:text-xl mb-3 mt-2">{name}</h2>
+        <h5 className="text-gray-300 text-xs md:text-sm">{position}</h5>
+      </div>
+      {/* This div now has a minimum height to keep card sizes consistent */}
+      <div className="flex justify-center items-center mt-3 min-h-11">
         {socials.map(
           (social) =>
             social.link && (
@@ -51,8 +54,10 @@ function TeamCard({
                 href={social.link}
                 key={social.name}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="text-[#dadde2] hover:text-gray-500"
               >
+                <span className="sr-only">{social.name}</span>
                 <social.icon className="h-7 w-7 mx-1 my-2" aria-hidden="true" />
               </a>
             )

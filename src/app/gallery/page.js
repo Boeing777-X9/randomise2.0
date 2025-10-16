@@ -6,17 +6,17 @@ import "react-photo-album/rows.css";
 
 const photos = [
   {
-    src: "https://res.cloudinary.com/randomize/image/upload/w_800,h_600,c_fit,q_auto,f_auto/v1737894907/Website/GalleryPhotos/1_x4rnmh.jpg",
+    src: "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760584988/1_v9wn9z.jpg",
     width: 800,
     height: 600,
   },
   {
-    src: "https://res.cloudinary.com/randomize/image/upload/w_800,h_600,c_fit,q_auto,f_auto/v1737894905/Website/GalleryPhotos/2_f3fq1d.jpg",
+    src: "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760584987/2_u3jeit.jpg",
     width: 800,
     height: 600,
   },
   {
-    src: "https://res.cloudinary.com/randomize/image/upload/w_800,h_600,c_fit,q_auto,f_auto/v1737894906/Website/GalleryPhotos/3_cgzs7p.jpg",
+    src: "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760584987/5_ywiy35.jpg",
     width: 800,
     height: 600,
   },
@@ -46,7 +46,7 @@ const photos = [
     height: 600,
   },
   {
-    src: "https://res.cloudinary.com/randomize/image/upload/w_800,h_600,c_fit,q_auto,f_auto/v1737894909/Website/GalleryPhotos/9_un1jjx.jpg",
+    src: "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760584987/4_vbgeoc.jpg",
     width: 800,
     height: 600,
   },
@@ -76,7 +76,7 @@ const photos = [
     height: 600,
   },
   {
-    src: "https://res.cloudinary.com/randomize/image/upload/w_800,h_600,c_fit,q_auto,f_auto/v1737894910/Website/GalleryPhotos/15_mhtktc.jpg",
+    src: "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760584987/3_memvg9.jpg",
     width: 800,
     height: 600,
   },

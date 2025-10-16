@@ -51,7 +51,7 @@ const Navbar = () => {
                             transition={{ duration: 0.2 }}
                         >
                             <Link href="/" className="flex items-center group">
-                                <div className="relative h-12 w-12 mr-3 transition-transform duration-300 group-hover:rotate-12">
+                                <div className="relative h-10 w-34 mr-3 transition-transform duration-300 group-hover:rotate-12">
                                     <Image
                                         src="/nav_logo.avif"
                                         alt="Randomize"
@@ -67,7 +67,7 @@ const Navbar = () => {
                                         backgroundImage: 'linear-gradient(to right, #4ECDC4, #45B7D1, #96CEB4)' 
                                     }}
                                 >
-                                    RANDOMIZE
+                                    
                                 </motion.span>
                             </Link>
                         </motion.div>

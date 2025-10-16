@@ -1,4 +1,4 @@
-const Exec2024 = [
+const Exec2025 = [
   {
     id: 0,
     name: "Vishesh Khadaria",
@@ -65,4 +65,4 @@ const Exec2024 = [
   },
 ];
 
-export default Exec2024;
+export default Exec2025;
