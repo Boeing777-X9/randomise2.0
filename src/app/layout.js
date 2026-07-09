@@ -3,6 +3,22 @@ import Navbar from "@/components/Navbar";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import Floating, { FloatingElement } from "@/fancy/components/image/parallax-floating";
+import { Bebas_Neue, Inter } from "next/font/google";
+
+// Bebas Neue — condensed bold display font (used for the RANDOMIZE() heading)
+const bebasNeue = Bebas_Neue({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-bebas',
+  display: 'swap',
+});
+
+// Inter — clean sans-serif for body text
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 export const metadata = {
   title: "Randomize",
@@ -12,7 +28,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="relative overflow-x-hidden">
+      <body className={`relative overflow-x-hidden ${bebasNeue.variable} ${inter.variable}`}>
         {/* Global Parallax Container */}
         <Floating 
           className="min-h-screen" 

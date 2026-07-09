@@ -34,11 +34,31 @@ const Navbar = () => {
     return (
         <>
             <motion.nav 
-                className={`fixed top-0 left-0 right-0 z-50 text-white font-sans transition-all duration-300 ${
+                className={`fixed top-0 left-0 right-0 z-50 text-white font-sans transition-all duration-500 ${
                     scrolled 
-                        ? 'bg-gradient-to-r from-[#020108]/95 via-[#0a051a]/95 to-[#020108]/95 backdrop-blur-xl border-b border-[#A10FF2]/30 py-3 shadow-lg shadow-purple-500/10' 
-                        : 'bg-gradient-to-r from-[#020108]/80 via-[#0a051a]/80 to-[#020108]/80 backdrop-blur-md border-b border-[#A10FF2]/10 py-5'
+                        ? [
+                            // Scrolled — more opaque glass
+                            'bg-[rgba(2,1,8,0.55)]',
+                            'backdrop-blur-2xl',
+                            'border-b border-white/10',
+                            'shadow-[0_4px_24px_rgba(161,15,242,0.12),0_1px_0_rgba(255,255,255,0.06)_inset]',
+                            'py-3',
+                          ].join(' ')
+                        : [
+                            // Not scrolled — ultra-transparent glass
+                            'bg-[rgba(2,1,8,0.18)]',
+                            'backdrop-blur-xl',
+                            'border-b border-white/[0.06]',
+                            'shadow-[0_2px_16px_rgba(45,15,247,0.06)]',
+                            'py-5',
+                          ].join(' ')
                 }`}
+                style={{
+                  // Glass highlight — thin gradient line at the very top edge
+                  backgroundImage: scrolled
+                    ? 'linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 100%)'
+                    : 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 100%)',
+                }}
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}

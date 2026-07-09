@@ -7,7 +7,7 @@ import Floating, { FloatingElement } from "@/fancy/components/image/parallax-flo
 
 export default function Landing() {
   return (
-  <div className="relative isolate overflow-hidden bg-gradient-to-br from-[#0d0618] via-[#1a0b3d] to-[#000000] min-h-lvh">
+  <div className="relative isolate overflow-hidden bg-gradient-to-br from-[#0d0618] via-[#1a0b3d] to-[#000000] min-h-[110vh]">
       <Floating className="w-full h-full" sensitivity={3} easingFactor={0.15}>
         {/* Background Pattern with Parallax */}
         <FloatingElement depth={0.5} className="absolute inset-0 -z-10 h-full w-full">
@@ -57,8 +57,8 @@ export default function Landing() {
         </FloatingElement>
 
         {/* Main Content Container with Parallax */}
-        <FloatingElement depth={1.2} className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 pb-16 sm:pb-24 flex items-center place-content-center min-h-lvh w-full lg:flex-row flex-col-reverse lg:px-8 lg:py-8" absolute={false}>
-          <FloatingElement depth={1.5} className="mx-auto max-w-7xl px-2 sm:px-4 pb-2 md:pb-4 flex-row lg:px-8 lg:pt-10 lg:mt-0 pt-10 sm:pt-16" absolute={false}>
+        <FloatingElement depth={1.2} className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 pb-20 sm:pb-32 flex items-center place-content-center min-h-[110vh] w-full lg:flex-row flex-col-reverse lg:px-8 lg:py-12" absolute={false}>
+          <FloatingElement depth={1.5} className="mx-auto max-w-7xl px-2 sm:px-4 pb-4 md:pb-8 flex-row lg:px-8 lg:pt-12 lg:mt-0 pt-12 sm:pt-20" absolute={false}>
             {/* Logo Container with Enhanced Parallax */}
             <FloatingElement depth={2} className="flex place-content-center" absolute={false}>
               <motion.div 
