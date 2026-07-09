@@ -3,16 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-/**
- * HeroBackground is a premium, cinematic, and modern background component.
- * It features:
- * - A solid dark base (#05030B)
- * - Three layered blurred radial glows with smooth, independent Framer Motion drift animations
- * - A masked grid overlay (5-8% opacity) that fades toward the edges
- * - A soft vignette to frame the content
- * - Film grain noise overlay (2.5% opacity) to prevent gradient banding
- * - A retro-futuristic dither halftone matrix along the corners and sides
- */
+
 export default function HeroBackground({ children, className = '', isFixed = false }) {
   // SVG Fractal Noise Data URI for high-quality film grain texture
   const grainDataUri = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`;
@@ -116,7 +107,7 @@ export default function HeroBackground({ children, className = '', isFixed = fal
 
       {/* 5. CORNER & SIDE DITHER HALFTONE EFFECT */}
       <div 
-        className="absolute inset-0 opacity-[0.9] pointer-events-none mix-blend-screen"
+        className="absolute inset-0 opacity-[0.5] pointer-events-none mix-blend-screen"
         style={{
           backgroundSize: '7px 7px', // Tiny mesh dither pattern
           backgroundImage: `
@@ -126,7 +117,7 @@ export default function HeroBackground({ children, className = '', isFixed = fal
           backgroundPosition: '0 0, 2px 2px',
           // The inverted radial mask leaves the center pristine and smoothly rolls the dither into the edges
           maskImage: 'radial-gradient(circle at center, transparent 89%, black 95%)',
-          WebkitMaskImage: 'radial-gradient(circle at center, transparent 89%, black 98%)',
+          WebkitMaskImage: 'radial-gradient(circle at center, transparent 85%, black 98%)',
         }}
       />
     </div>

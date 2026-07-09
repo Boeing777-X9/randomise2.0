@@ -28,11 +28,11 @@ export default function Landing() {
   };
 
   return (
-  <div className="relative isolate overflow-hidden bg-transparent min-h-lvh">
+    <div className="relative isolate overflow-hidden bg-transparent min-h-lvh">
       <Floating className="w-full h-full" sensitivity={3} easingFactor={0.15}>
         {/* Main Content Container with Parallax */}
         <FloatingElement depth={1.2} className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 pb-16 sm:pb-24 flex items-center place-content-center min-h-lvh w-full lg:flex-row flex-col-reverse lg:px-8 lg:py-8" absolute={false}>
-          <FloatingElement depth={1.5} className="mx-auto max-w-7xl px-2 sm:px-4 pb-2 md:pb-4 flex-row lg:px-8 lg:pt-10 lg:mt-0 pt-10 sm:pt-16" absolute={false}>
+          <FloatingElement depth={1.5} className="mx-auto max-w-7xl px-2 sm:px-4 pb-2 md:pb-4 flex-row lg:px-8 lg:pt-10 mt-24 sm:mt-16 pt-10 sm:pt-16" absolute={false}>
             {/*Login / signup form */}
             <GlassmorphismCard className="w-full">
               <div className="w-full">
@@ -50,7 +50,6 @@ export default function Landing() {
                     {isLogin ? "Sign in to your account to continue" : "Create your account to get started"}
                   </p>
                 </motion.div>
-
 
                 {/* Form */}
                 <motion.form 

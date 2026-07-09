@@ -3,15 +3,17 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const pathname = usePathname();
 
     useEffect(() => {
         const scrollHandler = () => {
-            setScrolled(window.pageYOffset > 20);
+            setScrolled(window.scrollY > 20);
         };
 
         window.addEventListener("scroll", scrollHandler);
@@ -33,163 +35,145 @@ const Navbar = () => {
 
     return (
         <>
-            <motion.nav 
-                className={`fixed top-0 left-0 right-0 z-50 text-white font-sans transition-all duration-500 ${
-                    scrolled 
-                        ? [
-                            // Scrolled — more opaque glass
-                            'bg-[rgba(2,1,8,0.55)]',
-                            'backdrop-blur-2xl',
-                            'border-b border-white/10',
-                            'shadow-[0_4px_24px_rgba(161,15,242,0.12),0_1px_0_rgba(255,255,255,0.06)_inset]',
-                            'py-3',
-                          ].join(' ')
-                        : [
-                            // Not scrolled — ultra-transparent glass
-                            'bg-[rgba(2,1,8,0.18)]',
-                            'backdrop-blur-xl',
-                            'border-b border-white/[0.06]',
-                            'shadow-[0_2px_16px_rgba(45,15,247,0.06)]',
-                            'py-5',
-                          ].join(' ')
-                }`}
-                style={{
-                  // Glass highlight — thin gradient line at the very top edge
-                  backgroundImage: scrolled
-                    ? 'linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 100%)'
-                    : 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 100%)',
-                }}
-                initial={{ y: -100 }}
-                animate={{ y: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-            >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between">
-                        {/* Logo Section */}
-                        <motion.div 
-                            className="flex items-center"
-                            whileHover={{ scale: 1.05 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <Link href="/" className="flex items-center group">
-                                <div className="relative h-10 w-34 mr-3 transition-transform duration-300 group-hover:rotate-12">
-                                    <Image
-                                        src="/nav_logo.avif"
-                                        alt="Randomize"
-                                        fill
-                                        className="object-contain"
-                                        sizes="48px"
-                                        priority
+            {/* WRAPPER CONTAINER TO ALLOW RELATIVE GLOW POSITIONING */}
+            <div className="fixed top-6 left-1/2 -translate-x-1/2 w-[92%] max-w-7xl z-50">
+                
+                {/* TOUCH 10: AURORA GLOW BEHIND THE NAVBAR */}
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-cyan-500/10 via-indigo-500/10 to-violet-500/10 blur-xl -z-10 pointer-events-none" />
+
+                <motion.nav 
+                    className={`w-full rounded-full overflow-hidden transition-all duration-500 border text-white font-sans ${
+                        scrolled 
+                            ? 'bg-white/[0.08] backdrop-blur-3xl border-white/10 shadow-[0_12px_40px_rgba(0,0,0,.45)] py-3'
+                            : 'bg-white/[0.04] backdrop-blur-2xl border-white/8 shadow-[0_8px_30px_rgba(0,0,0,.25)] py-4'
+                    }`}
+                    initial={{ y: -100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                >
+                    {/* TOUCH 3: GLASS REFLECTION SHINE OVERLAY */}
+                    <div className="pointer-events-none absolute inset-0 rounded-full overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.12] via-white/[0.02] to-transparent" />
+                    </div>
+
+                    {/* TOUCH 4: SUBTLE AURORA PROJECTOR INSIDE NAV */}
+                    <motion.div
+                        animate={{ x: ["-30%", "40%", "-30%"] }}
+                        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute top-0 left-0 w-64 h-full bg-gradient-to-r from-cyan-400/5 via-violet-500/8 to-transparent blur-3xl pointer-events-none"
+                    />
+
+                    <div className="w-full mx-auto px-6 sm:px-8">
+                        <div className="flex items-center justify-between relative z-10">
+                            
+                            {/* TOUCH 6: LOGO WITH ELEVATED HOVER & GLOW */}
+                            <motion.div 
+                                whileHover={{ scale: 1.05 }}
+                                transition={{ duration: 0.2 }}
+                                className="flex items-center filter drop-shadow-[0_0_18px_rgba(125,211,252,.3)]"
+                            >
+                                <Link href="/" className="flex items-center group">
+                                    <div className="relative h-9 w-32 mr-3 transition-transform duration-300">
+                                        <Image
+                                            src="/nav_logo.avif"
+                                            alt="Randomize"
+                                            fill
+                                            className="object-contain"
+                                            sizes="128px"
+                                            priority
+                                        />
+                                    </div>
+                                </Link>
+                            </motion.div>
+
+                            {/* DESKTOP NAVIGATION LINKS */}
+                            <div className="hidden lg:flex items-center space-x-2">
+                                {navLinks.map((link, index) => {
+                                    const isActive = pathname === link.href;
+
+                                    return (
+                                        <motion.div
+                                            key={link.href}
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.05, duration: 0.4 }}
+                                        >
+                                            <Link
+                                                href={link.href}
+                                                className="relative px-5 py-2 rounded-full transition-all duration-300 hover:text-white hover:bg-white/[0.06] text-gray-200 text-sm font-medium tracking-wide flex items-center justify-center group"
+                                            >
+                                                <span className="relative z-10">{link.label}</span>
+                                                
+                                                {/* TOUCH 5: FLUID ACTIVE TAB LAYOUT CAP */}
+                                                {isActive && (
+                                                    <motion.div 
+                                                        layoutId="nav-active" 
+                                                        className="absolute inset-0 rounded-full bg-white/[0.05]" 
+                                                    />
+                                                )}
+
+                                                {/* TOUCH 8: PREMIUM HOVER GRADIENT UNDERLINE */}
+                                                <motion.div 
+                                                    className="absolute bottom-0 left-4 right-4 h-px rounded-full bg-gradient-to-r from-cyan-300 via-indigo-400 to-violet-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                />
+                                            </Link>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* MOBILE MENU INTERACTIVE TOGGLE */}
+                            <motion.button
+                                type="button"
+                                className="lg:hidden relative w-10 h-10 flex items-center justify-center text-white hover:text-gray-300 focus:outline-none"
+                                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                                whileTap={{ scale: 0.95 }}
+                            >
+                                <div className="relative" lg-animate={showMobileMenu ? "open" : "closed"}>
+                                    <motion.span
+                                        className="block absolute h-0.5 w-6 bg-current transform transition duration-300"
+                                        animate={showMobileMenu ? { rotate: 45, y: 0 } : { rotate: 0, y: -6 }}
+                                    />
+                                    <motion.span
+                                        className="block absolute h-0.5 w-6 bg-current transform transition duration-300"
+                                        animate={showMobileMenu ? { opacity: 0 } : { opacity: 1 }}
+                                    />
+                                    <motion.span
+                                        className="block absolute h-0.5 w-6 bg-current transform transition duration-300"
+                                        animate={showMobileMenu ? { rotate: -45, y: 0 } : { rotate: 0, y: 6 }}
                                     />
                                 </div>
-                                <motion.span 
-                                    className="text-xl font-bold bg-gradient-to-r from-[#FF6B6B] via-[#4ECDC4] to-[#45B7D1] bg-clip-text text-transparent hidden sm:block"
-                                    whileHover={{ 
-                                        backgroundImage: 'linear-gradient(to right, #4ECDC4, #45B7D1, #96CEB4)' 
-                                    }}
-                                >
-                                    
-                                </motion.span>
-                            </Link>
-                        </motion.div>
-
-                        {/* Desktop Navigation */}
-                        <div className="hidden lg:flex items-center space-x-1">
-                            {navLinks.map((link, index) => (
-                                <motion.div
-                                    key={link.href}
-                                    initial={{ opacity: 0, y: -20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1, duration: 0.5 }}
-                                >
-                                    <Link
-                                        href={link.href}
-                                        className="relative px-4 py-2 text-gray-200 hover:text-white transition-all duration-300 group"
-                                    >
-                                        <span className="relative z-10 font-medium">
-                                            {link.label}
-                                        </span>
-                                        <motion.div
-                                            className="absolute inset-0 bg-gradient-to-r from-[#2D0FF7]/20 via-[#A10FF2]/20 to-[#F20059]/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                            whileHover={{ scale: 1.05 }}
-                                        />
-                                        <motion.div
-                                            className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] group-hover:w-full group-hover:left-0 transition-all duration-300"
-                                        />
-                                    </Link>
-                                </motion.div>
-                            ))}
+                            </motion.button>
                         </div>
-
-                        {/* Mobile Menu Button */}
-                        <motion.button
-                            type="button"
-                            className="lg:hidden relative w-10 h-10 flex items-center justify-center text-white hover:text-gray-300 focus:outline-none"
-                            onClick={() => setShowMobileMenu(!showMobileMenu)}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <motion.div
-                                className="relative"
-                                animate={showMobileMenu ? "open" : "closed"}
-                            >
-                                <motion.span
-                                    className="block absolute h-0.5 w-6 bg-current transform transition duration-300"
-                                    variants={{
-                                        closed: { rotate: 0, y: -6 },
-                                        open: { rotate: 45, y: 0 }
-                                    }}
-                                />
-                                <motion.span
-                                    className="block absolute h-0.5 w-6 bg-current transform transition duration-300"
-                                    variants={{
-                                        closed: { opacity: 1 },
-                                        open: { opacity: 0 }
-                                    }}
-                                />
-                                <motion.span
-                                    className="block absolute h-0.5 w-6 bg-current transform transition duration-300"
-                                    variants={{
-                                        closed: { rotate: 0, y: 6 },
-                                        open: { rotate: -45, y: 0 }
-                                    }}
-                                />
-                            </motion.div>
-                        </motion.button>
                     </div>
-                </div>
 
-                {/* Mobile Menu */}
-                <AnimatePresence>
-                    {showMobileMenu && (
-                        <motion.div
-                            className="lg:hidden bg-gradient-to-b from-[#020108]/95 to-[#0a051a]/95 backdrop-blur-xl border-t border-[#A10FF2]/20"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3, ease: "easeInOut" }}
-                        >
-                            <div className="px-4 py-6 space-y-2">
-                                {navLinks.map((link, index) => (
-                                    <motion.div
-                                        key={link.href}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: index * 0.1, duration: 0.3 }}
-                                    >
+                    {/* TOUCH 9: UPGRADED MOBILE GLASS OVERLAY DRAWER */}
+                    <AnimatePresence>
+                        {showMobileMenu && (
+                            <motion.div
+                                className="lg:hidden w-full mt-4 rounded-3xl bg-white/[0.05] backdrop-blur-3xl border border-white/10 overflow-hidden"
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                            >
+                                <div className="px-4 py-6 space-y-1">
+                                    {navLinks.map((link) => (
                                         <Link
+                                            key={link.href}
                                             href={link.href}
-                                            className="block px-4 py-3 text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-[#2D0FF7]/10 hover:to-[#A10FF2]/10 rounded-lg transition-all duration-300 border border-transparent hover:border-[#A10FF2]/20"
+                                            className="block px-5 py-3 text-gray-200 hover:text-white hover:bg-white/[0.06] rounded-xl transition-all duration-300 text-sm font-medium"
                                             onClick={() => setShowMobileMenu(false)}
                                         >
-                                            <span className="font-medium">{link.label}</span>
+                                            {link.label}
                                         </Link>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.nav>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.nav>
+            </div>
         </>
     );
 };
