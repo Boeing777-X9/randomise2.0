@@ -10,7 +10,8 @@ const GlassmorphismCard = ({
   frontIcon = null,
   hue1 = 300,
   hue2 = 240,
-  className = ""
+  className = "",
+  children = null
 }) => {
   return (
     <motion.div 
@@ -545,91 +546,100 @@ const GlassmorphismCard = ({
         />
       </motion.div>
       
-      {/* Header section */}
-      <motion.header 
-        className="flex items-start gap-4 mb-8 relative z-10"
-        initial={{ opacity: 0, y: 10 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        viewport={{ once: true }}
-      >
-        {frontIcon && (
-          <motion.div 
-            className="flex-shrink-0 p-3 rounded-2xl"
-            style={{
-              background: `linear-gradient(135deg, 
-                hsla(${hue1}, 70%, 50%, 0.15) 0%,
-                hsla(${hue2}, 70%, 50%, 0.1) 100%
-              )`,
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-            }}
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="text-white/90">
-              {React.cloneElement(frontIcon, { className: "w-8 h-8" })}
-            </div>
-          </motion.div>
-        )}
-        <div className="flex-1">
-          <motion.h3 
-            className="text-white font-semibold text-xl mb-1 leading-tight"
-            style={{ fontFamily: "'Inter', sans-serif" }}
-          >
-            {title}
-          </motion.h3>
-          {subtitle && (
-            <motion.p 
-              className="text-white/70 text-sm font-medium"
-              style={{ fontFamily: "'Inter', sans-serif" }}
-            >
-              {subtitle}
-            </motion.p>
-          )}
+      {/* Render children if provided, otherwise use the default header + features layout */}
+      {children ? (
+        <div className="relative z-10 flex-1">
+          {children}
         </div>
-      </motion.header>
-      
-      {/* Features list */}
-      <motion.div 
-        className="flex-1 space-y-4 relative z-10"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        viewport={{ once: true }}
-      >
-        {features.map((feature, index) => (
-          <motion.div 
-            key={index}
-            className="group"
-            initial={{ opacity: 0, x: -10 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 * index }}
+      ) : (
+        <>
+          {/* Header section */}
+          <motion.header 
+            className="flex items-start gap-4 mb-8 relative z-10"
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
           >
-            <div className="flex items-start gap-3">
-              <div 
-                className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
+            {frontIcon && (
+              <motion.div 
+                className="flex-shrink-0 p-3 rounded-2xl"
                 style={{
                   background: `linear-gradient(135deg, 
-                    hsl(${hue1}, 70%, 60%) 0%,
-                    hsl(${hue2}, 70%, 60%) 100%
+                    hsla(${hue1}, 70%, 50%, 0.15) 0%,
+                    hsla(${hue2}, 70%, 50%, 0.1) 100%
                   )`,
-                  boxShadow: `0 0 8px hsla(${hue1}, 70%, 60%, 0.5)`
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
                 }}
-              />
-              <div className="flex-1">
-                <h4 className="text-white font-medium text-base mb-2 leading-snug">
-                  {feature.name}
-                </h4>
-                <p className="text-white/75 text-sm leading-relaxed font-normal">
-                  {feature.description}
-                </p>
-              </div>
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="text-white/90">
+                  {React.cloneElement(frontIcon, { className: "w-8 h-8" })}
+                </div>
+              </motion.div>
+            )}
+            <div className="flex-1">
+              <motion.h3 
+                className="text-white font-semibold text-xl mb-1 leading-tight"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                {title}
+              </motion.h3>
+              {subtitle && (
+                <motion.p 
+                  className="text-white/70 text-sm font-medium"
+                  style={{ fontFamily: "'Inter', sans-serif" }}
+                >
+                  {subtitle}
+                </motion.p>
+              )}
             </div>
+          </motion.header>
+          
+          {/* Features list */}
+          <motion.div 
+            className="flex-1 space-y-4 relative z-10"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
+            {features.map((feature, index) => (
+              <motion.div 
+                key={index}
+                className="group"
+                initial={{ opacity: 0, x: -10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 * index }}
+                viewport={{ once: true }}
+              >
+                <div className="flex items-start gap-3">
+                  <div 
+                    className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
+                    style={{
+                      background: `linear-gradient(135deg, 
+                        hsl(${hue1}, 70%, 60%) 0%,
+                        hsl(${hue2}, 70%, 60%) 100%
+                      )`,
+                      boxShadow: `0 0 8px hsla(${hue1}, 70%, 60%, 0.5)`
+                    }}
+                  />
+                  <div className="flex-1">
+                    <h4 className="text-white font-medium text-base mb-2 leading-snug">
+                      {feature.name}
+                    </h4>
+                    <p className="text-white/75 text-sm leading-relaxed font-normal">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
-        ))}
-      </motion.div>
+        </>
+      )}
       
       {/* Bottom highlight */}
       <div 
