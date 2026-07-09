@@ -130,7 +130,7 @@ export default function Gallery() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#000000] via-[#020108] to-[#0a051a] py-20">
+    <div className="min-h-screen bg-transparent py-20">
       <div className="mx-4 sm:mx-9 md:mx-28 p-3 mb-24 relative my-28">
         <h1 className="text-4xl sm:text-4xl md:text-6xl text-center mb-6 font-bold md:mb-9 text-white">
           Gallery

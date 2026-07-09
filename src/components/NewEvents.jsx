@@ -127,16 +127,9 @@ const NewEvents = () => {
 
   return (
     <section 
-      className="relative min-h-screen bg-gradient-to-br from-[#0d0618] via-[#1a0b3d] to-[#000000] overflow-hidden"
+      className="relative min-h-screen bg-transparent overflow-hidden"
       id="events"
     >
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(45,15,247,0.1),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(242,0,89,0.1),transparent_50%)]" />
-      
-      {/* Animated Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f12_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f12_1px,transparent_1px)] bg-[size:50px_50px] animate-pulse opacity-20" />
-
       <div className="relative z-10 container mx-auto px-6 py-20">
         {/* Header */}
         <motion.div 

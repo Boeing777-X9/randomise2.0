@@ -29,7 +29,7 @@ export default function RhythmicWords() {
         mainClassName={sizeClass}
         // CRITICAL FIX: The background gradient classes are passed directly 
         // to the single letter levels here, protecting the background clip mapping!
-        elementLevelClassName="bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059]"
+        elementLevelClassName="bg-gradient-to-r from-[#22D3EE] via-[#4F46E5] to-[#7C3AED]"
         splitLevelClassName="overflow-visible" 
         style={{ 
           fontFamily: 'var(--font-bebas, sans-serif)', 

@@ -61,7 +61,7 @@ export default function Pathaan() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#000000] via-[#020108] to-[#0a051a] text-white py-20">
+    <div className="min-h-screen bg-transparent text-white py-20">
       {/* Hero Section */}
       <motion.div 
         className="text-center mb-16 px-4"

@@ -23,7 +23,7 @@ export default function AnimatedRandomizeText() {
     <div className="flex items-center justify-center px-2 mb-6 mt-2">
       <FlickerText
         text="RANDOMIZE()"
-        textColor="#FFFFFF"
+        textColor="#ffffffce"
         glowIntensity={12}
         strokeWidth={1}
         animationSpeed={0.75}

@@ -86,10 +86,10 @@
   --color-accent: var(--color-brand-rose);
 
   /* UI Colors */
-  --color-background: radial-gradient(ellipse at center, #1a0b3d 0%, #0d0618 50%, #000000 100%);
-  --color-background-solid: #0d0618;
-  --color-surface: #1a0b3d;
-  --color-card: linear-gradient(135deg, #1e0f4a 0%, #2a1255 100%);
+  --color-background: #05030B;
+  --color-background-solid: #05030B;
+  --color-surface: #0a0714;
+  --color-card: linear-gradient(135deg, #0e0a1e 0%, #150f2b 100%);
   --color-text-primary: #FFFFFF;
   --color-text-secondary: #DADADA;
   --color-text-muted: #999999;
@@ -782,8 +782,8 @@
   .bg-dark-card { background: var(--color-card); }
 
   /* Gradient Background Utilities */
-  .bg-gradient-dark { background: radial-gradient(ellipse at center, #1a0b3d 0%, #0d0618 50%, #000000 100%); }
-  .bg-gradient-dark-card { background: linear-gradient(135deg, #1e0f4a 0%, #2a1255 100%); }
+  .bg-gradient-dark { background: #05030B; }
+  .bg-gradient-dark-card { background: linear-gradient(135deg, #0e0a1e 0%, #150f2b 100%); }
 
   /* Border Utilities with Brand Colors */
   .border-brand { border-color: rgba(161, 15, 242, 0.2); }

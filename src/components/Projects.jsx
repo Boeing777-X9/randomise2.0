@@ -213,37 +213,8 @@ export default function Projects() {
   return (
     <section 
       id="projects" 
-      className="relative bg-gradient-to-br from-[#000000] via-[#020108] to-[#0a051a] py-20 overflow-hidden"
+      className="relative bg-transparent py-20 overflow-hidden"
     >
-      {/* Enhanced background effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-[#2D0FF7]/10 to-[#6A0FF4]/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, 100, 0],
-            y: [0, -50, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div
-          className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-[#A10FF2]/10 to-[#F20059]/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, -80, 0],
-            y: [0, 60, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      </div>
 
       {/* Live Projects Section */}
       <ProjectSection
