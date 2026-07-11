@@ -620,6 +620,7 @@
 /* ===== UTILITY CLASSES ===== */
 @layer utilities {
   .container {
+     width: 100%;  
     max-width: var(--container-xl);
     margin: 0 auto;
     padding: 0 var(--spacing-md);
