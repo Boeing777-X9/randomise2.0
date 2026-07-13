@@ -1,0 +1,58 @@
+const Exec2026 = [
+  {
+    id: 0,
+    name: "Rashi Srivastava",
+    role: "President",
+    imageUrl: "/team2026-27/Rashi.jpg",
+    github: "",
+    linkedinUrl: "",
+    quote: "",
+  },
+  {
+    id: 1,
+    name: "Akshit Yadav",
+    role: "Vice President",
+    imageUrl: "/team2026-27/Akshit.jpg",
+    github: "",
+    linkedinUrl: "https://www.linkedin.com/in/akshit-yadav-335694300",
+    quote: "Hope we can make your experience with us a great one.",
+  },
+  {
+    id: 2,
+    name: "Aastha Gupta",
+    role: "General Secretary",
+    imageUrl: "/team2026-27/Aastha.jpeg",
+    github: "https://github.com/aasthag17",
+    linkedinUrl: "https://www.linkedin.com/in/aastha-gupta-493510336/",
+    quote: "Built on curiosity.",
+  },
+  {
+    id: 3,
+    name: "Arsheya Yadav",
+    role: "Treasurer",
+    imageUrl: "/team2026-27/Arsheya.jpg",
+    github: "",
+    linkedinUrl: "https://www.linkedin.com/in/arsheya-yadav",
+    quote: "Ready for the good part.",
+  },
+  {
+    id: 4,
+    name: "Aditya Mukherjee",
+    role: "Technical Secretary",
+    imageUrl: "/team2026-27/Aditya.jpg",
+    github: "",
+    linkedinUrl: "",
+    quote: "",
+  },
+  {
+    id: 5,
+    name: "Aaryan Rathee",
+    role: "Managing Director",
+    imageUrl: "/team2026-27/Aaryan.jpeg",
+    github: "",
+    linkedinUrl: "https://www.linkedin.com/in/aaryanrathee",
+    quote: "Always up for something new. Just trying to build cool things and enjoy the journey. (Still pretending I know what I’m doing.)",
+  },
+];
+
+export default Exec2026;
