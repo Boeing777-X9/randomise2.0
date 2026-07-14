@@ -31,12 +31,11 @@ const Navbar = () => {
         { href: "/events", label: "Events" },
         { href: "/gallery", label: "Gallery" },
         { href: "/teams", label: "Team" },
+        { href: "/newsletter", label: "Newsletter" },
         { href: "/login", label: "Login" }
     ];
 
-    const handleNewsletterClick = () => {
-        router.push("/newsletter");
-    };
+    
 
     const handleBecomeMember = () => {
         window.location.href = "/membership";
@@ -75,27 +74,24 @@ const Navbar = () => {
                     <div className="w-full mx-auto px-6 sm:px-8">
                         <div className="flex items-center justify-between relative z-10">
 
-                            {/* TOUCH 6: LOGO WITH ELEVATED HOVER & GLOW */}
-                            <motion.div
-                                whileHover={{ scale: 1.05 }}
-                                transition={{ duration: 0.2 }}
-                                className="flex items-center filter drop-shadow-[0_0_18px_rgba(125,211,252,.3)]"
-                            >
-                                <Link href="/" className="flex items-center group">
-                                    <div className="relative h-9 w-32 mr-3 transition-transform duration-300">
-                                        <Image
-                                            src="/nav_logo.avif"
-                                            alt="Randomize"
-                                            fill
-                                            className="object-contain"
-                                            sizes="128px"
-                                            priority
-                                        />
-                                    </div>
-                                </Link>
-                            </motion.div>
-
-                            {/* DESKTOP NAVIGATION LINKS */}
+                                                {/* TOUCH 6: LOGO WITH ELEVATED HOVER & GLOW */}
+                                                <motion.div
+                                                    whileHover={{ scale: 1.05 }}
+                                                    transition={{ duration: 0.2 }}
+                                                    className="flex items-center filter drop-shadow-[0_0_18px_rgba(125,211,252,.3)]"
+                                                >
+                                                    <Link href="/" className="flex items-center group">
+                                                        
+                                                        <div className="flex items-center justify-center p-2 rounded-xl bg-white/[0.03] backdrop-blur-md border border-white/[0.08] bg-gradient-to-r from-purple-500/10 via-indigo-500/5 to-cyan-500/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+                                                            <img
+                                                                src="/nav-logo.svg" 
+                                                                alt="Randomize Logo"
+                                                                className="h-8 w-auto object-contain"
+                                                            />
+                                                        </div>
+                                                    </Link>
+                                                </motion.div>
+                                                                            {/* DESKTOP NAVIGATION LINKS */}
                             <div className="hidden lg:flex items-center space-x-2">
                                 {navLinks.map((link, index) => {
                                     const isActive = pathname === link.href;
@@ -138,23 +134,7 @@ const Navbar = () => {
 
                             {/* Two Buttons */}
                             <div className="hidden lg:flex items-center gap-2 -translate-x-2">
-                                {/* Newsletter Button */}
-                                <motion.button
-                                    onClick={handleNewsletterClick}
-                                    className="relative px-3 py-2 text-gray-200 hover:text-white transition-all duration-300 group"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    <span className="relative z-10 font-medium text-sm">
-                                        Newsletter
-                                    </span>
-                                    <motion.div
-                                        className="absolute inset-0 bg-gradient-to-r from-[#2D0FF7]/20 via-[#A10FF2]/20 to-[#F20059]/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                    />
-                                    <motion.div
-                                        className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] group-hover:w-full group-hover:left-0 transition-all duration-300"
-                                    />
-                                </motion.button>
+                                
 
                                 {/* Become a Member Button - Highlighted */}
                                 <motion.button
@@ -220,17 +200,7 @@ const Navbar = () => {
 
                                     {/* Mobile Buttons */}
                                     <div className="border-t border-[#A10FF2]/20 mt-4 pt-4 space-y-2">
-                                        <motion.button
-                                            onClick={() => {
-                                                handleNewsletterClick();
-                                                setShowMobileMenu(false);
-                                            }}
-                                            className="w-full px-4 py-2 text-sm font-medium text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-[#2D0FF7]/10 hover:to-[#A10FF2]/10 rounded-lg transition-all duration-300 border border-transparent hover:border-[#A10FF2]/20"
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.95 }}
-                                        >
-                                            Newsletter
-                                        </motion.button>
+                                        
                                         <motion.button
                                             onClick={() => {
                                                 handleBecomeMember();
