@@ -190,7 +190,7 @@ const Core2026 = [
   },
   {
     id: 22,
-    name: "Gun Agarwal",
+    name: "Gun Agrawal",
     role: "Head of Finance & Registrations",
     imageUrl: "/team2026-27/Gun.jpg",
     github: "",
