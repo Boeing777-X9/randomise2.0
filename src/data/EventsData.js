@@ -6,7 +6,7 @@ const events = [
     description:
       "Web Dev Workshop Day 1 ended with energy and creativity! Fresh minds dove into code, ideas sparked, and projects came alive. Day 1 set the bar high and we’re just getting started!",
     image:
-      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760536148/web_development2026_gph5a1.png",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/f_auto,q_auto,w_800,c_fill/v1760536148/web_development2026_gph5a1.png",
   },
 
   {
@@ -16,7 +16,7 @@ const events = [
     description:
       "Hello World got everyone coding and curious, laying down the first brick for many bright futures.Our Webdev Workshop Trilogy in its very first day brought the heat with killer projects and a crowd that truly showed up and shone.",
     image:
-      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760534537/A4_-_1187_hbwabb.png",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/f_auto,q_auto,w_800,c_fill/v1760534537/A4_-_1187_hbwabb.png",
   },
   {
     id: "2",
@@ -25,7 +25,7 @@ const events = [
     description:
       "The vibe at our Freshman Meetup was electric. New faces, new friendships, and the perfect start to the journey. A forever memory!",
     image:
-      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760534577/image_2025-10-15_185252182_d2weo6.png",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/f_auto,q_auto,w_800,c_fill/v1760534577/image_2025-10-15_185252182_d2weo6.png",
   },
   {
     id: "3",
@@ -34,7 +34,7 @@ const events = [
     description:
       "Not just tech, but Entrepreneurship. Chaitra Chidanand showed us what it means to Dream, Dare, and Do.  From Simpl to SALT, it wasn’t just startups. It was stories of mindset, money, and meaning.  Because building isn’t just code; it’s courage.",
     image:
-      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760534590/Screenshot_2025-10-15_185133_fnv7fr.png",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/f_auto,q_auto,w_800,c_fill/v1760534590/Screenshot_2025-10-15_185133_fnv7fr.png",
   },
   {
     id: "4",
@@ -52,7 +52,7 @@ const events = [
     description:
       "Ever wondered why coders sit long with their laptops? Get your answer and Master logic and precision at CPP Workshop get your syntax straight and your skills sharper than ever.",
     image:
-      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760532961/cpp_rnq6uf.png",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/f_auto,q_auto,w_800,c_fill/v1760532961/cpp_rnq6uf.png",
   },
   {
     id: "6",
@@ -61,7 +61,7 @@ const events = [
     description:
       "Build smart and bold with Web Dev 3 and dont forget, it’s not just code, it’s creation that stands out, work that builds confidence. ",
     image:
-      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760532958/web_development_3_cu7kat.png",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/f_auto,q_auto,w_800,c_fill/v1760532958/web_development_3_cu7kat.png",
   },
   {
     id: "7",
@@ -70,7 +70,7 @@ const events = [
     description:
       "Step into the future at the Neural Network Workshop and power up your ideas with the brain behind AI",
     image:
-      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760532958/neural_jizjce.png",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/f_auto,q_auto,w_800,c_fill/v1760532958/neural_jizjce.png",
   },
   {
     id: "8",
@@ -79,7 +79,7 @@ const events = [
     description:
       "Push boundaries with our Machine Learning Workshop  where we decode data, design intelligence, and leave the average behind. Become the rare with the rare",
     image:
-      "https://res.cloudinary.com/dwh5daoyd/image/upload/v1760532959/ml_nzmxlk.png",
+      "https://res.cloudinary.com/dwh5daoyd/image/upload/f_auto,q_auto,w_800,c_fill/v1760532959/ml_nzmxlk.png",
   },
   {
     id: "9",
