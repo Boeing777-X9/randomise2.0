@@ -208,15 +208,15 @@ export default function EventsPage() {
               </span>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black tracking-tight leading-none sm:leading-[0.85]">
+            <div className="events-hero-copy">
+              <h1 className="events-hero-title">
                 <span className="text-white">ALL </span>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-500">
                   EVENTS
                 </span>
               </h1>
 
-              <p className="w-full max-w-2xl text-sm sm:text-lg text-gray-400 sm:text-gray-500 font-light leading-relaxed">
+              <p className="events-hero-description">
                 Every workshop, hackathon, and meetup that shaped our <span className="text-purple-400 font-medium">2023–2025</span> journey.
               </p>
             </div>
@@ -327,6 +327,52 @@ export default function EventsPage() {
       )}
 
       <style jsx global>{`
+        .events-hero-copy {
+          display: block;
+          width: 100%;
+          min-width: 0;
+        }
+        .events-hero-title {
+          display: block;
+          width: 100%;
+          margin: 0 0 1rem;
+          font-size: clamp(2.75rem, 16vw, 5.5rem);
+          font-weight: 900;
+          line-height: 0.95;
+          letter-spacing: 0;
+        }
+        .events-hero-description {
+          display: block;
+          width: min(100%, 42rem);
+          max-width: 100%;
+          margin: 0;
+          color: rgb(156 163 175);
+          font-size: 0.95rem;
+          line-height: 1.65;
+          font-weight: 300;
+          overflow-wrap: normal;
+          word-break: normal;
+        }
+        @media (min-width: 640px) {
+          .events-hero-title {
+            font-size: 3.75rem;
+            line-height: 0.85;
+          }
+          .events-hero-description {
+            font-size: 1.125rem;
+            color: rgb(107 114 128);
+          }
+        }
+        @media (min-width: 768px) {
+          .events-hero-title {
+            font-size: 6rem;
+          }
+        }
+        @media (min-width: 1024px) {
+          .events-hero-title {
+            font-size: 8rem;
+          }
+        }
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
