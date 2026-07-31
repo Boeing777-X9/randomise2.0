@@ -158,6 +158,9 @@ export default function NewsletterComingSoonPage() {
                 priority
               />
             </a>
+            <p className="text-xs text-gray-400 mt-3">
+              Click the image to read the full newsletter
+            </p>
           </div>
         </section>
       </div>
