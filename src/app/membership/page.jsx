@@ -24,7 +24,7 @@ export default function MembershipForm() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#070514] px-4 py-16 flex flex-col items-center justify-start font-sans antialiased selection:bg-purple-500 selection:text-white overflow-x-hidden relative">
+    <div className="w-full min-h-screen bg-[#070514] px-3 sm:px-4 py-24 sm:py-16 flex flex-col items-center justify-start font-sans antialiased selection:bg-purple-500 selection:text-white overflow-x-hidden relative">
       
       {/* Background Ambient Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-purple-900/20 rounded-full blur-[120px] pointer-events-none" />
@@ -47,7 +47,7 @@ export default function MembershipForm() {
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-cyan-500 to-pink-500 rounded-[32px] blur-xl opacity-1 group-hover:opacity-3 transition duration-1000 group-hover:duration-200 mt-[200px] "
+            className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-cyan-500 to-pink-500 rounded-[32px] blur-xl opacity-1 group-hover:opacity-3 transition duration-1000 group-hover:duration-200"
           />
 
           {/* Form Content Wrapper */}
@@ -62,15 +62,14 @@ export default function MembershipForm() {
             
             {/* ================= CLUB INTRO PANEL ================= */}
             <GlassCard 
-              style={{ minHeight: '380px' }} 
-              className="w-full mb-8 relative border border-white/[0.05] bg-white/[0.01] rounded-2xl p-6 overflow-hidden mt-[20px] backdrop-blur-lg shadow-[0_30px_100px_rgba(0,0,0,0.8)]"
+              className="w-full mb-8 relative mt-5"
             >
-              <h2 className="text-xl sm:text-2xl font-extrabold mb-5 bg-gradient-to-r from-purple-400 via-indigo-200 to-cyan-400 bg-clip-text text-transparent tracking-tight text-center leading-relaxed dropped-glow-sm">
+              <h2 className="text-lg sm:text-2xl font-extrabold mb-5 bg-gradient-to-r from-purple-400 via-indigo-200 to-cyan-400 bg-clip-text text-transparent tracking-tight text-center leading-relaxed dropped-glow-sm">
                 ✨ Welcome to Randomize(); <br />
                 <span className="text-sm font-medium tracking-normal text-gray-400 block mt-1">The Official Computing Club of MUJ</span>
               </h2>
               
-              <div className="space-y-4 text-sm text-gray-300/80 leading-relaxed text-left">
+              <div className="space-y-3 sm:space-y-4 text-sm text-gray-300/80 leading-relaxed text-left">
                 <p>
                   <span className="font-semibold text-white">Randomize();</span>, proudly backed by the Department of Computer Science and Engineering, is a thriving community of tech enthusiasts passionate about innovation, coding, and emerging technologies.
                 </p>
@@ -133,7 +132,7 @@ export default function MembershipForm() {
               {/* Accommodation Setup Custom Pill Selectors */}
               <div className="w-full block">
                 <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-3">Your Accommodation *</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {['GHS', 'Day Scholar', 'PG/Flat'].map((type) => {
                     const isSelected = formData.accommodation === type;
                     return (
@@ -177,7 +176,7 @@ export default function MembershipForm() {
                           {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[#0d0b21]" />}
                         </div>
                         <div className="flex-1">
-                          <div className="flex justify-between items-center">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                             <span className={`text-sm font-semibold ${isSelected ? 'text-cyan-300' : 'text-gray-200'}`}>{tier.title}</span>
                             <span className="text-xs font-mono text-pink-400 font-bold bg-pink-500/10 px-2 py-0.5 rounded-md">{tier.price}</span>
                           </div>

@@ -56,7 +56,7 @@ export default function GlassCard({ children, className = '', style = {} }) {
         onMouseMove={handleCardMouseMove}
         onMouseLeave={handleCardMouseLeave}
         style={{ rotateX: rotateXSpring, rotateY: rotateYSpring, transformStyle: "preserve-3d" }}
-        className="absolute inset-0 rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.05] to-white/[0.01] backdrop-blur-xl p-8 text-white shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer flex flex-col justify-between"
+        className="relative min-h-full rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.05] to-white/[0.01] backdrop-blur-xl p-5 sm:p-8 text-white shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer flex flex-col"
       >
         {/* Liquid Sheen Overlay */}
         <motion.div 
@@ -69,7 +69,7 @@ export default function GlassCard({ children, className = '', style = {} }) {
         <div className="absolute bottom-0 right-0 w-[1px] h-full bg-gradient-to-b from-transparent via-pink-500/20 to-transparent" />
 
         {/* 3D Content Layer Projection */}
-        <div style={{ transform: "translateZ(40px)" }} className="relative z-10 flex flex-col justify-between h-full w-full">
+        <div style={{ transform: "translateZ(40px)" }} className="relative z-10 flex flex-col w-full">
           {children}
         </div>
       </motion.div>

@@ -30,7 +30,7 @@ const EventCard = ({ event, index, onSelect }) => (
     onClick={() => onSelect(event)}
     layout
   >
-    <div className="relative h-[420px] md:h-[480px] rounded-[1.5rem] overflow-hidden border border-white/[0.06] bg-gray-950">
+    <div className="relative h-[340px] sm:h-[420px] md:h-[480px] rounded-[1.25rem] sm:rounded-[1.5rem] overflow-hidden border border-white/[0.06] bg-gray-950">
       {/* Image */}
       <img
         src={event.image}
@@ -45,21 +45,21 @@ const EventCard = ({ event, index, onSelect }) => (
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-pink-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
       {/* Date pill — top right */}
-      <div className="absolute top-4 right-4 px-3 py-1 text-[10px] font-bold tracking-[0.15em] uppercase text-white/70 bg-black/50 backdrop-blur-md border border-white/10 rounded-full">
+      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 max-w-[calc(100%-1.5rem)] px-3 py-1 text-[10px] font-bold tracking-[0.12em] sm:tracking-[0.15em] uppercase text-white/70 bg-black/50 backdrop-blur-md border border-white/10 rounded-full">
         {event.date}
       </div>
 
       {/* Bottom content */}
-      <div className="absolute bottom-0 left-0 right-0 p-7">
-        <h3 className="text-2xl md:text-3xl font-extrabold text-white leading-tight mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-300 group-hover:to-pink-300 transition-all duration-300">
+      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7">
+        <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-tight mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-300 group-hover:to-pink-300 transition-all duration-300">
           {event.title}
         </h3>
-        <p className="text-sm text-gray-400 leading-relaxed line-clamp-2 font-light">
+        <p className="text-sm text-gray-400 leading-relaxed line-clamp-3 sm:line-clamp-2 font-light">
           {event.description}
         </p>
 
         {/* Arrow CTA */}
-        <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-purple-400 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400">
+        <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-purple-400 opacity-100 translate-y-0 sm:opacity-0 sm:translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400">
           <span>Read more</span>
           <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -105,7 +105,7 @@ const EventModal = ({ event, onClose }) => {
 
       {/* Modal panel — horizontal on md+ */}
       <motion.div
-        className="relative w-full max-w-5xl mx-4 max-h-[92vh] rounded-t-[2rem] sm:rounded-[2rem] overflow-hidden bg-[#0c0812] border border-white/[0.08] shadow-[0_0_80px_rgba(168,85,247,0.12)] flex flex-col md:flex-row"
+        className="relative w-full max-w-5xl mx-2 sm:mx-4 max-h-[92vh] rounded-t-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-[#0c0812] border border-white/[0.08] shadow-[0_0_80px_rgba(168,85,247,0.12)] flex flex-col md:flex-row"
         initial={{ y: 60, opacity: 0, scale: 0.97 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 60, opacity: 0, scale: 0.97 }}
@@ -123,7 +123,7 @@ const EventModal = ({ event, onClose }) => {
         </button>
 
         {/* Image — left side on desktop, top on mobile */}
-        <div className="relative w-full md:w-[45%] h-56 sm:h-64 md:h-auto md:min-h-[450px] flex-shrink-0 overflow-hidden">
+        <div className="relative w-full md:w-[45%] h-44 sm:h-64 md:h-auto md:min-h-[450px] flex-shrink-0 overflow-hidden">
           <img
             src={event.image}
             alt={event.title}
@@ -133,17 +133,17 @@ const EventModal = ({ event, onClose }) => {
         </div>
 
         {/* Content — right side */}
-        <div className="w-full md:w-[55%] p-7 sm:p-9 md:p-10 flex flex-col overflow-y-auto max-h-[60vh] md:max-h-[92vh] events-modal-scroll">
+        <div className="w-full md:w-[55%] p-5 sm:p-9 md:p-10 flex flex-col overflow-y-auto max-h-[68vh] md:max-h-[92vh] events-modal-scroll">
           <div className="flex-1">
             <div className="inline-block mb-5 px-4 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full">
               <span className="text-purple-300 text-sm font-medium">{event.date}</span>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-6 leading-tight">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-4 sm:mb-6 leading-tight">
               {event.title}
             </h2>
 
-            <p className="text-gray-300 text-base sm:text-lg leading-[1.8] font-light">
+            <p className="text-gray-300 text-sm sm:text-lg leading-[1.75] sm:leading-[1.8] font-light">
               {event.description}
             </p>
           </div>
@@ -194,29 +194,29 @@ export default function EventsPage() {
       </div>
 
       {/* ─── Hero ─── */}
-      <div className="relative z-10 pt-32 pb-8">
-        <div className="max-w-7xl mx-auto px-6">
+      <div className="relative z-10 pt-28 sm:pt-32 pb-4 sm:pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
-            <div className="flex items-center gap-3 mb-8">
-              <div className="h-px w-16 bg-gradient-to-r from-purple-500 to-transparent" />
-              <span className="text-[11px] font-bold tracking-[0.3em] text-purple-400 uppercase">
+            <div className="flex items-center gap-3 mb-5 sm:mb-8">
+              <div className="h-px w-10 sm:w-16 bg-gradient-to-r from-purple-500 to-transparent" />
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.18em] sm:tracking-[0.3em] text-purple-400 uppercase">
                 Godspeed Randomize
               </span>
             </div>
 
-            <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-              <h1 className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tight leading-[0.85] whitespace-nowrap">
+            <div className="events-hero-copy">
+              <h1 className="events-hero-title">
                 <span className="text-white">ALL </span>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-500">
                   EVENTS
                 </span>
               </h1>
 
-              <p className="text-lg text-gray-500 font-light leading-relaxed">
+              <p className="events-hero-description">
                 Every workshop, hackathon, and meetup that shaped our <span className="text-purple-400 font-medium">2023–2025</span> journey.
               </p>
             </div>
@@ -225,7 +225,7 @@ export default function EventsPage() {
       </div>
 
       {/* ─── Year Filter ─── */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
         <motion.div
           className="flex flex-wrap gap-2"
           initial={{ opacity: 0 }}
@@ -236,7 +236,7 @@ export default function EventsPage() {
             <button
               key={yr}
               onClick={() => setYearFilter(yr)}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium border transition-all duration-300 ${
+              className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium border transition-all duration-300 ${
                 yearFilter === yr
                   ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.15)]'
                   : 'bg-white/[0.03] text-gray-400 border-white/[0.08] hover:bg-white/[0.06] hover:text-white'
@@ -245,15 +245,15 @@ export default function EventsPage() {
               {yr}
             </button>
           ))}
-          <span className="ml-auto self-center text-sm text-gray-600">{filtered.length} events</span>
+          <span className="w-full sm:w-auto sm:ml-auto pt-2 sm:pt-0 self-center text-xs sm:text-sm text-gray-500 sm:text-gray-600">{filtered.length} events</span>
         </motion.div>
       </div>
 
       {/* ─── Featured Event (first one) ─── */}
       {filtered.length > 0 && (
-        <div className="relative z-10 max-w-7xl mx-auto px-6 mb-12">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 mb-8 sm:mb-12">
           <motion.div
-            className="group relative h-[500px] md:h-[550px] rounded-[2rem] overflow-hidden border border-white/[0.06] cursor-pointer"
+            className="group relative h-[360px] sm:h-[500px] md:h-[550px] rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden border border-white/[0.06] cursor-pointer"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -267,17 +267,17 @@ export default function EventsPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent" />
 
-            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 max-w-2xl">
-              <div className="flex items-center gap-3 mb-4">
+            <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8 md:p-12 max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                 <span className="px-3 py-1 text-[10px] font-bold tracking-[0.15em] uppercase text-purple-300 bg-white/10 backdrop-blur-md border border-white/10 rounded-full">
                   Featured
                 </span>
-                <span className="text-sm text-gray-400">{filtered[0].date}</span>
+                <span className="text-xs sm:text-sm text-gray-400">{filtered[0].date}</span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-black text-white leading-tight mb-4">
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-3 sm:mb-4">
                 {filtered[0].title}
               </h2>
-              <p className="text-gray-300 text-lg font-light leading-relaxed line-clamp-3">
+              <p className="text-gray-300 text-sm sm:text-lg font-light leading-relaxed line-clamp-3">
                 {filtered[0].description}
               </p>
             </div>
@@ -297,8 +297,8 @@ export default function EventsPage() {
       )}
 
       {/* ─── Events Grid ─── */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 pb-28">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pb-20 sm:pb-28">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filtered.slice(1).map((event, index) => (
             <EventCard
               key={event.id}
@@ -327,6 +327,52 @@ export default function EventsPage() {
       )}
 
       <style jsx global>{`
+        .events-hero-copy {
+          display: block;
+          width: 100%;
+          min-width: 0;
+        }
+        .events-hero-title {
+          display: block;
+          width: 100%;
+          margin: 0 0 1rem;
+          font-size: clamp(2.75rem, 16vw, 5.5rem);
+          font-weight: 900;
+          line-height: 0.95;
+          letter-spacing: 0;
+        }
+        .events-hero-description {
+          display: block;
+          width: min(100%, 42rem);
+          max-width: 100%;
+          margin: 0;
+          color: rgb(156 163 175);
+          font-size: 0.95rem;
+          line-height: 1.65;
+          font-weight: 300;
+          overflow-wrap: normal;
+          word-break: normal;
+        }
+        @media (min-width: 640px) {
+          .events-hero-title {
+            font-size: 3.75rem;
+            line-height: 0.85;
+          }
+          .events-hero-description {
+            font-size: 1.125rem;
+            color: rgb(107 114 128);
+          }
+        }
+        @media (min-width: 768px) {
+          .events-hero-title {
+            font-size: 6rem;
+          }
+        }
+        @media (min-width: 1024px) {
+          .events-hero-title {
+            font-size: 8rem;
+          }
+        }
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
