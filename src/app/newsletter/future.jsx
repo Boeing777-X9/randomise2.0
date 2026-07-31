@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
-import Image from "next/image";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -64,8 +63,6 @@ export default function NewsletterComingSoonPage() {
     },
     [email, honeypot, isValidEmail]
   );
-
-  const googleDriveLink = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_LINK || "#";
 
   return (
     <main className="w-full min-h-screen bg-transparent text-white font-sans relative overflow-x-hidden flex flex-col items-center justify-center px-4 sm:px-6">
@@ -160,29 +157,6 @@ export default function NewsletterComingSoonPage() {
           <p className="text-xs text-gray-400 mt-8 w-full">
             No spam. Unsubscribe any time.
           </p>
-
-          {/* Preview of July Edition */}
-          <div className="w-full max-w-4xl mx-auto mt-16 flex flex-col items-center">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-8 text-center">
-              Preview of July Edition
-            </h2>
-
-            <a
-              href={googleDriveLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex justify-center w-full transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99]"
-            >
-              <Image
-                src="/newsletter_july.png"
-                alt="Preview of the July newsletter edition"
-                width={1730}
-                height={2160}
-                className="w-[400px] h-auto object-contain rounded-s"
-                priority
-              />
-            </a>
-          </div>
         </section>
       </div>
 
