@@ -327,7 +327,7 @@ const Core2026 = [
     id: 37,
     name: "Atharva Dhingra",
     role: "Head of Media & Coverage",
-    imageUrl: "/team2026-27/Atharva.jpg",
+    imageUrl: "/team2026-27/Atharva.JPG",
     github: "",
     linkedinUrl: " linkedin.com/in/atharvadhingra",
     quote: "I like photography and the way it freezes moments that would otherwise slip away",

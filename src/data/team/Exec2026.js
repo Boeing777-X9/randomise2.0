@@ -3,7 +3,7 @@ const Exec2026 = [
     id: 0,
     name: "Rashi Srivastava",
     role: "President",
-    imageUrl: "/team2026-27/rashi.jpg",
+    imageUrl: "/team2026-27/rashi.JPG",
     github: "",
     linkedinUrl: "",
     quote: "✨️✨️",
