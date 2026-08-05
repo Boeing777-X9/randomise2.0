@@ -6,7 +6,7 @@ const Exec2026 = [
     imageUrl: "/team2026-27/Rashi.jpg",
     github: "",
     linkedinUrl: "",
-    quote: "",
+    quote: "✨️✨️",
   },
   {
     id: 1,
