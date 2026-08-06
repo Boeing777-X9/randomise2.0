@@ -3,9 +3,11 @@
 import { useState, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-url.supabase.co";
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  supabaseUrl,
+  supabaseKey,
   {
     global: {
       headers: { Prefer: "return=minimal" },
@@ -42,24 +44,30 @@ export default function NewsletterComingSoonPage() {
       setStatus("loading");
       setMessage("");
 
-      const { error } = await supabase
-        .from("newsletter_subscribers")
-        .insert({ email: email.trim().toLowerCase() });
+      try {
+        const { error } = await supabase
+          .from("newsletter_subscribers")
+          .insert({ email: email.trim().toLowerCase() });
 
-      if (error) {
-        if (error.code === "23505") {
-          setStatus("success");
-          setMessage("You're already on the list!");
-        } else {
-          setStatus("error");
-          setMessage("Something went wrong. Please try again.");
+        if (error) {
+          if (error.code === "23505") {
+            setStatus("success");
+            setMessage("You're already on the list!");
+          } else {
+            setStatus("error");
+            setMessage("Something went wrong. Please try again.");
+          }
+          return;
         }
-        return;
-      }
 
-      setStatus("success");
-      setMessage("You're on the list!");
-      setEmail("");
+        setStatus("success");
+        setMessage("You're on the list!");
+        setEmail("");
+      } catch (err) {
+        console.error("Supabase insert error:", err);
+        setStatus("error");
+        setMessage("Something went wrong. Please try again.");
+      }
     },
     [email, honeypot, isValidEmail]
   );
@@ -75,21 +83,17 @@ export default function NewsletterComingSoonPage() {
                 boxShadow: "0 0 20px rgba(161,15,242,0.4)",
               }}
             >
-              <span
-                className="inline-block h-2 w-2 rounded-full bg-white"
-                style={{ animation: "pulseDot 1.6s ease-in-out infinite" }}
-              />
-              Coming Soon
+  
+             
             </span>
           </div>
 
           <h1 className="w-full text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] bg-clip-text text-transparent mb-4 leading-tight px-2">
-            Something big is on the way
+            Stay in the Loop
           </h1>
 
           <p className="w-full text-gray-200 text-sm sm:text-base max-w-7xl mx-auto mb-10 leading-relaxed">
-            We're putting the finishing touches on it. Drop your
-            email and be the first to know when we launch.
+            Catch up on this month's highlights and subscribe to have every edition delivered directly to your inbox.
           </p>
 
           <div className="w-full max-w-4xl mx-auto rounded-2xl border border-purple-500/20 p-6 sm:p-10 shadow-xl backdrop-blur-md text-left bg-opacity-40 bg-[#0a051a]">

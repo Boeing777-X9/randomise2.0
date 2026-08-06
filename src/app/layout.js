@@ -88,16 +88,10 @@ export default function RootLayout({ children }) {
             </FloatingElement>
           </div>
 
-          <div className="relative z-10">
+          <div className="relative z-10 w-full">
             <Navbar />
-
-            <FloatingElement depth={0.5} absolute={false}>
-              <main>{children}</main>
-            </FloatingElement>
-
-            <FloatingElement depth={0.2} absolute={false}>
-              <Footer />
-            </FloatingElement>
+            <main className="w-full">{children}</main>
+            <Footer />
           </div>
         </Floating>
       </body>
