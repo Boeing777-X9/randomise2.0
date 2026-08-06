@@ -1,11 +1,10 @@
 'use client';
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, memo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
-// --- DATE NORMALIZATION HELPER ---
 const parseEventDate = (dateStr: string): number => {
   if (!dateStr) return 0;
   const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -23,8 +22,7 @@ const parseEventDate = (dateStr: string): number => {
   return new Date(year, monthIndex, day).getTime();
 };
 
-// --- Event Card ---
-const EventCard = ({ event, index, onSelect }: any) => (
+const EventCard = memo(({ event, index, onSelect }: any) => (
   <motion.article
     className="group relative cursor-pointer"
     initial={{ opacity: 0, y: 30 }}
@@ -32,7 +30,6 @@ const EventCard = ({ event, index, onSelect }: any) => (
     transition={{ duration: 0.4, delay: (index % 9) * 0.04 }}
     viewport={{ once: true, margin: "-40px" }}
     onClick={() => onSelect(event)}
-    layout
   >
     <div className="relative h-[420px] md:h-[480px] rounded-[1.5rem] overflow-hidden border border-white/[0.06] bg-gray-950">
       {event.image ? (
@@ -83,9 +80,9 @@ const EventCard = ({ event, index, onSelect }: any) => (
       />
     </div>
   </motion.article>
-);
+));
+EventCard.displayName = 'EventCard';
 
-// --- Detail Modal ---
 const EventModal = ({ event, onClose }: any) => {
   const router = useRouter();
   
@@ -145,7 +142,6 @@ const EventModal = ({ event, onClose }: any) => {
             <p className="text-gray-300 text-base sm:text-lg leading-[1.8] font-light">
               {event.description}
             </p>
-            {/* WINNERS SECTION */}
             {event.type === 'competition' && event.show_winners && event.winners && event.winners.some((w: any) => w.name) && (
               <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-white/5 to-transparent border border-white/10 shadow-inner">
                 <h3 className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-violet-400 uppercase tracking-[0.2em] mb-5 flex items-center gap-2">
@@ -198,7 +194,6 @@ const EventModal = ({ event, onClose }: any) => {
   );
 };
 
-// --- Main Page ---
 export default function EventsPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
@@ -328,6 +323,7 @@ export default function EventsPage() {
               <img
                 src={bannerEvent.image}
                 alt={bannerEvent.title}
+                fetchPriority="high"
                 className="absolute inset-0 w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
               />
             ) : (
