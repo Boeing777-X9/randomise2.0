@@ -1,18 +1,16 @@
 'use client';
-
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 // --- DATE NORMALIZATION HELPER ---
 const parseEventDate = (dateStr: string): number => {
   if (!dateStr) return 0;
   const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
-  
   const yearMatch = dateStr.match(/\b(20\d{2})\b/);
   const year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
-
   const monthMatch = dateStr.match(/[a-zA-Z]+/);
   let monthIndex = 0;
   if (monthMatch) {
@@ -20,16 +18,12 @@ const parseEventDate = (dateStr: string): number => {
     monthIndex = months.indexOf(m);
     if (monthIndex === -1) monthIndex = 0;
   }
-
   const dayMatch = dateStr.match(/\b(\d{1,2})\b/);
   const day = dayMatch ? parseInt(dayMatch[1]) : 1;
-
   return new Date(year, monthIndex, day).getTime();
 };
 
-/* ──────────────────────────────────────────────
-   Event Card
-────────────────────────────────────────────── */
+// --- Event Card ---
 const EventCard = ({ event, index, onSelect }: any) => (
   <motion.article
     className="group relative cursor-pointer"
@@ -41,8 +35,6 @@ const EventCard = ({ event, index, onSelect }: any) => (
     layout
   >
     <div className="relative h-[420px] md:h-[480px] rounded-[1.5rem] overflow-hidden border border-white/[0.06] bg-gray-950">
-      
-      {/* CHANGED TO object-contain HERE */}
       {event.image ? (
         <img
           src={event.image}
@@ -54,10 +46,8 @@ const EventCard = ({ event, index, onSelect }: any) => (
       ) : (
         <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-900/20 to-black transition-all duration-700 ease-out group-hover:scale-110" />
       )}
-      
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-pink-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
       <div className="absolute top-4 right-4 flex gap-2 pointer-events-none">
         {event.type === 'competition' && (
           <span className="px-3 py-1 text-[10px] font-bold tracking-[0.15em] uppercase text-blue-300 bg-blue-900/50 backdrop-blur-md border border-blue-500/30 rounded-full">
@@ -68,7 +58,6 @@ const EventCard = ({ event, index, onSelect }: any) => (
           {event.date}
         </div>
       </div>
-
       <div className="absolute bottom-0 left-0 right-0 p-7 pointer-events-none">
         <h3 className="text-2xl md:text-3xl font-extrabold text-white leading-tight mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-300 group-hover:to-pink-300 transition-all duration-300">
           {event.title}
@@ -76,7 +65,6 @@ const EventCard = ({ event, index, onSelect }: any) => (
         <p className="text-sm text-gray-400 leading-relaxed line-clamp-2 font-light">
           {event.description}
         </p>
-
         <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-purple-400 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400">
           <span>Read more</span>
           <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +72,6 @@ const EventCard = ({ event, index, onSelect }: any) => (
           </svg>
         </div>
       </div>
-
       <div
         className="absolute inset-0 rounded-[1.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
@@ -98,10 +85,10 @@ const EventCard = ({ event, index, onSelect }: any) => (
   </motion.article>
 );
 
-/* ──────────────────────────────────────────────
-   Detail Modal
-────────────────────────────────────────────── */
+// --- Detail Modal ---
 const EventModal = ({ event, onClose }: any) => {
+  const router = useRouter();
+  
   useEffect(() => {
     const handler = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', handler);
@@ -132,9 +119,7 @@ const EventModal = ({ event, onClose }: any) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-
         <div className="relative w-full md:w-[45%] h-56 sm:h-64 md:h-auto md:min-h-[450px] flex-shrink-0 overflow-hidden bg-black/40">
-          {/* CHANGED TO object-contain HERE */}
           {event.image ? (
             <img src={event.image} alt={event.title} className="absolute inset-0 w-full h-full object-contain" />
           ) : (
@@ -142,7 +127,6 @@ const EventModal = ({ event, onClose }: any) => {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0c0812] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:via-transparent md:to-[#0c0812] pointer-events-none" />
         </div>
-
         <div className="w-full md:w-[55%] p-7 sm:p-9 md:p-10 flex flex-col overflow-y-auto max-h-[60vh] md:max-h-[92vh] events-modal-scroll">
           <div className="flex-1">
             <div className="flex gap-2 mb-5">
@@ -155,15 +139,12 @@ const EventModal = ({ event, onClose }: any) => {
                 </div>
               )}
             </div>
-
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-6 leading-tight">
               {event.title}
             </h2>
-
             <p className="text-gray-300 text-base sm:text-lg leading-[1.8] font-light">
               {event.description}
             </p>
-
             {/* WINNERS SECTION */}
             {event.type === 'competition' && event.show_winners && event.winners && event.winners.some((w: any) => w.name) && (
               <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-white/5 to-transparent border border-white/10 shadow-inner">
@@ -190,13 +171,25 @@ const EventModal = ({ event, onClose }: any) => {
               </div>
             )}
           </div>
-
-          <div className="mt-8 pt-6 border-t border-white/[0.06]">
+          
+          <div className="mt-8 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row gap-3">
+            {event.registration_live ? (
+                <button
+                  onClick={() => router.push(`/events/form?eventId=${event.id}`)}
+                  className="w-full sm:w-2/3 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all duration-300 transform hover:-translate-y-1"
+                >
+                  Register Now
+                </button>
+            ) : (
+                <button disabled className="w-full sm:w-2/3 py-4 rounded-xl font-bold text-gray-500 bg-white/5 border border-white/10 cursor-not-allowed">
+                  Registrations Closed
+                </button>
+            )}
             <button
               onClick={onClose}
-              className="w-full py-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white font-semibold transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]"
+              className="w-full sm:w-1/3 py-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white font-semibold transition-all duration-300"
             >
-              Back to Events
+              Back
             </button>
           </div>
         </div>
@@ -205,16 +198,13 @@ const EventModal = ({ event, onClose }: any) => {
   );
 };
 
-/* ──────────────────────────────────────────────
-   Main Page
-────────────────────────────────────────────── */
+// --- Main Page ---
 export default function EventsPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [yearFilter, setYearFilter] = useState('All');
   const [loading, setLoading] = useState(true);
 
-  // Dynamic years based on fetched DB data
   const years = useMemo(() => {
     const ySet = new Set();
     events.forEach(e => {
@@ -224,9 +214,9 @@ export default function EventsPage() {
     return ['All', ...Array.from(ySet).sort((a: any, b: any) => b - a)];
   }, [events]);
 
-  useEffect(() => { 
-    window.scrollTo(0, 0); 
-    fetchEvents();
+  useEffect(() => {
+     window.scrollTo(0, 0);
+     fetchEvents();
   }, []);
 
   const fetchEvents = async () => {
@@ -235,7 +225,7 @@ export default function EventsPage() {
       .from('events')
       .select('*')
       .neq('is_visible', false);
-    
+      
     if (!error && data) {
       const sortedEvents = data.sort((a, b) => {
         const timeA = parseEventDate(a.date);
@@ -278,7 +268,6 @@ export default function EventsPage() {
         <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-pink-600/[0.04] rounded-full blur-[140px]" />
       </div>
 
-      {/* ─── Hero ─── */}
       <div className="relative z-10 pt-32 pb-8">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
@@ -292,7 +281,6 @@ export default function EventsPage() {
                 Godspeed Randomize
               </span>
             </div>
-
             <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
               <h1 className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tight leading-[0.85] whitespace-nowrap">
                 <span className="text-white">ALL </span>
@@ -300,16 +288,14 @@ export default function EventsPage() {
                   EVENTS
                 </span>
               </h1>
-
               <p className="text-lg text-gray-500 font-light leading-relaxed">
-                Every workshop, hackathon, and meetup that shaped our <span className="text-purple-400 font-medium">2023–2026</span> journey.
+                Every workshop, hackathon, and meetup that shaped our <span className="text-purple-400 font-medium">2023 2026</span> journey.
               </p>
             </div>
           </motion.div>
         </div>
       </div>
 
-      {/* ─── Year Filter ─── */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         <motion.div className="flex flex-wrap gap-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
           {years.map((yr: any) => (
@@ -329,7 +315,6 @@ export default function EventsPage() {
         </motion.div>
       </div>
 
-      {/* ─── Featured Banner Event ─── */}
       {bannerEvent && (
         <div className="relative z-10 max-w-7xl mx-auto px-6 mb-12">
           <motion.div
@@ -339,7 +324,6 @@ export default function EventsPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             onClick={() => setSelectedEvent(bannerEvent as any)}
           >
-            {/* CHANGED TO object-contain HERE */}
             {bannerEvent.image ? (
               <img
                 src={bannerEvent.image}
@@ -349,10 +333,8 @@ export default function EventsPage() {
             ) : (
               <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-900/20 to-black transition-transform duration-700 group-hover:scale-105" />
             )}
-
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent pointer-events-none" />
-
             <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 max-w-2xl pointer-events-none">
               <div className="flex items-center gap-3 mb-4">
                 <span className="px-3 py-1 text-[10px] font-bold tracking-[0.15em] uppercase text-purple-300 bg-white/10 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-1">
@@ -377,7 +359,6 @@ export default function EventsPage() {
         </div>
       )}
 
-      {/* ─── Events Grid ─── */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 pb-28">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {gridEvents.map((event, index) => (
@@ -389,7 +370,6 @@ export default function EventsPage() {
             />
           ))}
         </div>
-
         {filtered.length === 0 && (
           <div className="text-center py-20">
             <p className="text-gray-500 text-lg">No events found for this year.</p>
@@ -397,7 +377,6 @@ export default function EventsPage() {
         )}
       </div>
 
-      {/* ─── Modal ─── */}
       {typeof document !== 'undefined' && createPortal(
         <AnimatePresence>
           {selectedEvent && (
@@ -406,7 +385,6 @@ export default function EventsPage() {
         </AnimatePresence>,
         document.body
       )}
-
       <style jsx global>{`
         .line-clamp-2 {
           display: -webkit-box;

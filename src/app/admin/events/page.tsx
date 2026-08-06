@@ -10,10 +10,12 @@ import {
   ChevronDown, ChevronUp, X, Edit2, Save, Eye, EyeOff, Star, Upload
 } from 'lucide-react';
 import { logAction } from '@/lib/audit'; 
+
 interface Winner {
   position: 1 | 2 | 3;
   name: string;
 }
+
 interface Event {
   id: string;
   title: string;
@@ -25,8 +27,12 @@ interface Event {
   type: 'normal' | 'competition';
   show_winners: boolean;
   winners: Winner[];
+  registration_live: boolean;
+  whatsapp_group_link: string;
 }
+
 type Toast = { message: string; type: "success" | "error" };
+
 const emptyEvent = (): Omit<Event, 'id'> => ({
   title: "",
   date: "",
@@ -36,6 +42,8 @@ const emptyEvent = (): Omit<Event, 'id'> => ({
   is_visible: true,
   type: 'normal',
   show_winners: false,
+  registration_live: false,
+  whatsapp_group_link: "",
   winners: [
     { position: 1, name: "" },
     { position: 2, name: "" },
@@ -70,7 +78,12 @@ export default function AdminEventsControl() {
   const [user, setUser] = useState<User | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-    const [expandedId, setExpandedId] = useState<string | null>(null);
+  
+  // Registration Management State
+  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [loadingRegs, setLoadingRegs] = useState(false);
+
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<Event>>({});
   const [showAdd, setShowAdd] = useState(false);
@@ -78,14 +91,16 @@ export default function AdminEventsControl() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
-    const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
+
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
+
   const checkAuthAndFetch = useCallback(async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -97,7 +112,9 @@ export default function AdminEventsControl() {
     setUser(user);
     await fetchEvents();
   }, [router]);
+
   useEffect(() => { checkAuthAndFetch(); }, [checkAuthAndFetch]);
+
   const fetchEvents = async () => {
     const { data, error } = await supabase
       .from('events')
@@ -116,6 +133,29 @@ export default function AdminEventsControl() {
     }
     setLoading(false);
   };
+
+  const fetchRegistrations = async (eventId: string) => {
+    setLoadingRegs(true);
+    const { data } = await supabase.from('event_registrations').select('*').eq('event_id', eventId);
+    setRegistrations(data || []);
+    setLoadingRegs(false);
+  };
+
+  const exportCSV = () => {
+    const header = ["Reg ID", "Name", "Personal Email", "Outlook Email", "Reg Number", "WhatsApp", "Joined", "Date"];
+    const csv = registrations.map(r => [
+      r.registration_id, r.full_name, r.personal_email, r.outlook_email, 
+      r.registration_number, r.whatsapp_number, r.joined_whatsapp ? 'Yes' : 'No', 
+      new Date(r.created_at).toLocaleString()
+    ].join(','));
+    const blob = new Blob([header.join(',') + '\n' + csv.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'registrations.csv';
+    a.click();
+  };
+
   const handleImageUpload = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -187,6 +227,7 @@ export default function AdminEventsControl() {
 
       const { error } = await supabase.from('events').update(updatedValues).eq('id', id);
       if (error) throw error;
+      
       if (originalEvent) {
         const changes: Record<string, any> = {};
         Object.keys(updatedValues).forEach((key) => {
@@ -225,7 +266,7 @@ export default function AdminEventsControl() {
 
     const { error } = await supabase.from('events').delete().eq('id', id);
     if (!error) {
-            await logAction(user?.email || 'Unknown', 'Deleted Event', { 
+      await logAction(user?.email || 'Unknown', 'Deleted Event', { 
         event_id: id, 
         event_title: eventToDelete?.title 
       });
@@ -243,7 +284,6 @@ export default function AdminEventsControl() {
     const event = events.find(e => e.id === id);
     const { error } = await supabase.from('events').update({ is_visible: !currentStatus }).eq('id', id);
     if (!error) {
-      
       await logAction(user?.email || 'Unknown', 'Toggled Event Visibility', { 
         event_id: id, 
         event_title: event?.title,
@@ -328,7 +368,7 @@ export default function AdminEventsControl() {
                 setEditingId(event.id); 
                 setEditValues({ ...event }); 
                 setExpandedId(event.id); 
-                setEditImageFile(null); // Reset file input when editing a new card
+                setEditImageFile(null);
               }} 
               className="flex items-center gap-1 px-2.5 py-1.5 border border-white/10 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/5 transition-all">
               <Edit2 className="w-3 h-3" /> Edit
@@ -347,7 +387,10 @@ export default function AdminEventsControl() {
               </button>
             )}
 
-            <button onClick={() => setExpandedId(isExpanded ? null : event.id)} className="flex items-center justify-center w-7 h-7 border border-white/10 rounded-lg text-gray-300 hover:bg-white/5 transition-all ml-1">
+            <button onClick={() => {
+                setExpandedId(isExpanded ? null : event.id);
+                if (!isExpanded) { setRegistrations([]); }
+              }} className="flex items-center justify-center w-7 h-7 border border-white/10 rounded-lg text-gray-300 hover:bg-white/5 transition-all ml-1">
               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
           </div>
@@ -361,7 +404,6 @@ export default function AdminEventsControl() {
                   <Field label="Title"><input value={editValues.title ?? ""} onChange={e => setEditValues(p => ({ ...p, title: e.target.value }))} className="inp" /></Field>
                   <Field label="Date"><input value={editValues.date ?? ""} onChange={e => setEditValues(p => ({ ...p, date: e.target.value }))} className="inp" /></Field>
                   
-                  {/* File Upload for Editing (ONLY FILE INPUT NOW) */}
                   <Field label="Update Image (Cloudinary)">
                     <input 
                       type="file" 
@@ -378,15 +420,25 @@ export default function AdminEventsControl() {
                       <option value="competition">Competition</option>
                     </select>
                   </Field>
+                  
+                  <Field label="WhatsApp Group Link">
+                    <input value={editValues.whatsapp_group_link ?? ""} onChange={e => setEditValues(p => ({ ...p, whatsapp_group_link: e.target.value }))} className="inp" placeholder="https://chat.whatsapp.com/..." />
+                  </Field>
                 </div>
                 
                 <Field label="Description">
                   <textarea value={editValues.description ?? ""} onChange={e => setEditValues(p => ({ ...p, description: e.target.value }))} className="inp resize-y" rows={3} />
                 </Field>
 
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" checked={editValues.is_banner ?? false} onChange={e => setEditValues(p => ({ ...p, is_banner: e.target.checked }))} className="w-4 h-4 rounded border-gray-500 text-purple-600 bg-transparent" />
-                  <label className="text-sm text-gray-300">Set as Featured Banner Event</label>
+                <div className="flex flex-col gap-2 mt-4">
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={editValues.is_banner ?? false} onChange={e => setEditValues(p => ({ ...p, is_banner: e.target.checked }))} className="w-4 h-4 rounded border-gray-500 text-purple-600 bg-transparent" />
+                    <label className="text-sm text-gray-300">Set as Featured Banner Event</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={editValues.registration_live ?? false} onChange={e => setEditValues(p => ({ ...p, registration_live: e.target.checked }))} className="w-4 h-4 rounded border-gray-500 text-purple-600 bg-transparent" />
+                    <label className="text-sm text-gray-300">Registration Live / Open</label>
+                  </div>
                 </div>
 
                 {editValues.type === 'competition' && (
@@ -451,6 +503,37 @@ export default function AdminEventsControl() {
                     </div>
                   </div>
                 )}
+
+                {/* Registration Management View */}
+                <div className="col-span-full mt-6 border-t border-white/10 pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-purple-300 font-semibold uppercase tracking-wider text-[10px]">Registration Data</h4>
+                    {event.registration_live ? (
+                      <span className="px-2 py-1 text-[10px] uppercase font-bold bg-green-500/20 text-green-400 rounded border border-green-500/30">Live</span>
+                    ) : (
+                      <span className="px-2 py-1 text-[10px] uppercase font-bold bg-red-500/20 text-red-400 rounded border border-red-500/30">Closed</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button 
+                      onClick={() => fetchRegistrations(event.id)} 
+                      className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors"
+                    >
+                      Load Registrations
+                    </button>
+                    {registrations.length > 0 && (
+                      <>
+                         <span className="text-sm text-gray-400">{registrations.length} Total Registrations</span>
+                         <button onClick={exportCSV} className="px-4 py-2 bg-purple-500/20 border border-purple-500/40 text-purple-300 rounded-lg text-sm hover:bg-purple-500/30 transition-colors ml-auto">
+                           Export CSV
+                         </button>
+                      </>
+                    )}
+                  </div>
+                  
+                  {loadingRegs && <p className="text-sm text-gray-500 mt-4">Loading Data...</p>}
+                </div>
               </div>
             )}
           </div>
@@ -544,14 +627,26 @@ export default function AdminEventsControl() {
                   <option value="competition">Competition</option>
                 </select>
               </Field>
+
+              <Field label="WhatsApp Group Link">
+                <input value={newEvent.whatsapp_group_link} onChange={e => setNewEvent(p => ({ ...p, whatsapp_group_link: e.target.value }))} className="inp" placeholder="https://chat.whatsapp.com/..." />
+              </Field>
             </div>
             <div className="mt-5">
               <Field label="Description"><textarea value={newEvent.description} onChange={e => setNewEvent(p => ({ ...p, description: e.target.value }))} className="inp resize-y" rows={3} /></Field>
             </div>
-            <div className="mt-5 flex items-center gap-2">
-               <input type="checkbox" checked={newEvent.is_banner} onChange={e => setNewEvent(p => ({ ...p, is_banner: e.target.checked }))} className="w-4 h-4 rounded border-gray-500 text-purple-600 focus:ring-purple-600 bg-transparent" />
-               <label className="text-sm text-gray-300">Set as Featured Banner Event</label>
+            
+            <div className="mt-5 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <input type="checkbox" checked={newEvent.is_banner} onChange={e => setNewEvent(p => ({ ...p, is_banner: e.target.checked }))} className="w-4 h-4 rounded border-gray-500 text-purple-600 focus:ring-purple-600 bg-transparent" />
+                <label className="text-sm text-gray-300">Set as Featured Banner Event</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" checked={newEvent.registration_live} onChange={e => setNewEvent(p => ({ ...p, registration_live: e.target.checked }))} className="w-4 h-4 rounded border-gray-500 text-purple-600 focus:ring-purple-600 bg-transparent" />
+                <label className="text-sm text-gray-300">Registration Live / Open</label>
+              </div>
             </div>
+
             {newEvent.type === 'competition' && (
               <div className="mt-6 p-4 border border-white/10 rounded-lg bg-black/20">
                 <div className="flex items-center gap-2 mb-4">
@@ -576,6 +671,7 @@ export default function AdminEventsControl() {
                 )}
               </div>
             )}
+            
             <button onClick={handleAdd} disabled={saving} className="mt-6 flex items-center justify-center w-full gap-2 px-5 py-3 bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] rounded-lg text-white font-semibold hover:shadow-lg disabled:opacity-50">
               {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               {saving ? "Uploading & Saving Event..." : "Upload Image & Add Event"}
@@ -635,6 +731,7 @@ export default function AdminEventsControl() {
     </div>
   );
 }
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
