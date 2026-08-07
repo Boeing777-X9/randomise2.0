@@ -270,7 +270,7 @@ function EventRegistrationFormContent() {
 
             <div className="space-y-1.5 w-full block">
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Full Name *</label>
-              <input required type="text" value={formData.fullName} onChange={e => setFormData(p => ({...p, fullName: e.target.value}))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-colors block" placeholder="John Doe" />
+              <input required type="text" value={formData.fullName} onChange={e => setFormData(p => ({...p, fullName: e.target.value}))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-colors block" placeholder="Mohak Singhal" />
             </div>
 
             <div className="space-y-1.5 w-full block">
