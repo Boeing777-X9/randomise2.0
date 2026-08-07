@@ -1,20 +1,15 @@
 "use client";
 import { useState, useCallback } from "react";
-import { createClient } from "@supabase/supabase-js";
 import Image from "next/image";
 import { Mail, ArrowUpRight } from "lucide-react";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-url.supabase.co";
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
-const supabase = createClient(supabaseUrl, supabaseKey, {
-  global: { headers: { Prefer: "return=minimal" } },
-});
+import { Turnstile } from "@marsidev/react-turnstile";
 
 export default function NewsletterComingSoonPage() {
   const [email, setEmail] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   const isValidEmail = useCallback((value) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -23,29 +18,60 @@ export default function NewsletterComingSoonPage() {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      if (honeypot) { setStatus("success"); setMessage("You're on the list!"); return; }
-      if (!isValidEmail(email)) { setStatus("error"); setMessage("Please enter a valid email address."); return; }
+
+      // 1. Honeypot check
+      if (honeypot) { 
+        setStatus("success"); 
+        setMessage("You're on the list!"); 
+        return; 
+      }
+
+      // 2. Email syntax check
+      if (!isValidEmail(email)) { 
+        setStatus("error"); 
+        setMessage("Please enter a valid email address."); 
+        return; 
+      }
+
+      // 3. Bot Turnstile verification check
+      if (!turnstileToken) {
+        setStatus("error");
+        setMessage("Bot check pending. Please wait a moment and try again.");
+        return;
+      }
+
       setStatus("loading");
       setMessage("");
+
       try {
-        const { error } = await supabase
-          .from("newsletter_subscribers")
-          .insert({ email: email.trim().toLowerCase() });
-        if (error) {
-          if (error.code === "23505") { setStatus("success"); setMessage("You're already on the list!"); }
-          else { setStatus("error"); setMessage("Something went wrong. Please try again."); }
+        // Post request to Next.js API route instead of direct Supabase DB call
+        const res = await fetch('/api/newsletter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            token: turnstileToken
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setStatus("error");
+          setMessage(data.error || "Something went wrong. Please try again.");
           return;
         }
+
         setStatus("success");
-        setMessage("You're on the list!");
+        setMessage(data.message || "You're on the list!");
         setEmail("");
       } catch (err) {
-        console.error("Supabase insert error:", err);
+        console.error("Newsletter submission error:", err);
         setStatus("error");
         setMessage("Something went wrong. Please try again.");
       }
     },
-    [email, honeypot, isValidEmail]
+    [email, honeypot, isValidEmail, turnstileToken]
   );
 
   const googleDriveLink = "https://drive.google.com/file/d/10fPPPYhX0WDnKFBZ5-tZc0tYh5XP0u4l/view?usp=sharing";
@@ -143,8 +169,17 @@ export default function NewsletterComingSoonPage() {
                 </button>
               </div>
 
+              {/* Cloudflare Turnstile Challenge */}
+              <div style={{ display: "flex", justifyContent: "center", marginTop: "0.75rem" }}>
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""}
+                  onSuccess={(token) => setTurnstileToken(token)}
+                  options={{ theme: "dark" }}
+                />
+              </div>
+
               {/* Honeypot */}
-              <div className="hidden" aria-hidden="true">
+              <div className="hidden" aria-hidden="true" style={{ display: "none" }}>
                 <label htmlFor="company">Company</label>
                 <input id="company" name="company" type="text" tabIndex={-1} autoComplete="off" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
               </div>
