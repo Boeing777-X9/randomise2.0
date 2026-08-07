@@ -86,7 +86,7 @@ export default function Landing() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="you@example.com"
+                      placeholder="Enter email address"
                       required
                       className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-[#A10FF2] focus:ring-2 focus:ring-[#A10FF2]/30 transition-all duration-300 backdrop-blur-sm"
                     />

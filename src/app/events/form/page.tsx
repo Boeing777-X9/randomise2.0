@@ -270,18 +270,18 @@ function EventRegistrationFormContent() {
 
             <div className="space-y-1.5 w-full block">
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Full Name *</label>
-              <input required type="text" value={formData.fullName} onChange={e => setFormData(p => ({...p, fullName: e.target.value}))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-colors block" placeholder="John Doe" />
+              <input required type="text" value={formData.fullName} onChange={e => setFormData(p => ({...p, fullName: e.target.value}))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-colors block" placeholder="Enter full name" />
             </div>
 
             <div className="space-y-1.5 w-full block">
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">MUJ Outlook Email *</label>
-              <input required type="email" value={formData.outlookEmail} onChange={e => setFormData(p => ({...p, outlookEmail: e.target.value}))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-colors block" placeholder="firstname.regno@muj.manipal.edu" />
+              <input required type="email" value={formData.outlookEmail} onChange={e => setFormData(p => ({...p, outlookEmail: e.target.value}))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-colors block" placeholder="Enter outlook email ID" />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full">
               <div className="space-y-1.5 w-full block">
                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Registration Number *</label>
-                <input required type="text" value={formData.registrationNumber} onChange={e => setFormData(p => ({...p, registrationNumber: e.target.value}))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-colors block" placeholder="230..." />
+                <input required type="text" value={formData.registrationNumber} onChange={e => setFormData(p => ({...p, registrationNumber: e.target.value}))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-colors block" placeholder="Enter registration number" />
               </div>
 
               <div className="space-y-1.5 w-full block">

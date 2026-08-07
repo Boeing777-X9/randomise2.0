@@ -98,10 +98,10 @@ export default function MembershipForm() {
               
               {/* Interactive Floating Inputs for Text Formats */}
               {[
-                { id: 'name', label: 'Full Name *', type: 'text', placeholder: 'John Doe' },
-                { id: 'regNo', label: 'Registration Number *', type: 'text', placeholder: 'e.g., 239500XXX' },
+                { id: 'name', label: 'Full Name *', type: 'text', placeholder: 'Enter name' },
+                { id: 'regNo', label: 'Registration Number *', type: 'text', placeholder: 'Enter Registration Number' },
                 { id: 'phone', label: 'Phone Number *', type: 'tel', placeholder: 'e.g., +91 XXXXX XXXXX' },
-                { id: 'outlookEmail', label: 'Outlook Email ID *', type: 'email', placeholder: 'username@jaipur.manipal.edu' },
+                { id: 'outlookEmail', label: 'Outlook Email ID *', type: 'email', placeholder: 'Enter Outlook Email ID' },
                 { id: 'academicDetails', label: 'Academic Programme, Year & Section *', type: 'text', placeholder: 'e.g., B.Tech CSE 2nd Year Sec X' }
               ].map((field) => (
                 <div key={field.id} className="w-full block relative">

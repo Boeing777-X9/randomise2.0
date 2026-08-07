@@ -112,7 +112,7 @@ export default function NewsletterComingSoonPage() {
                   type="email"
                   autoComplete="email"
                   required
-                  placeholder="you@example.com"
+                  placeholder="Enter email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   aria-describedby="newsletter-status"
