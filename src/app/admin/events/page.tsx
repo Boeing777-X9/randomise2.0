@@ -107,7 +107,15 @@ export default function AdminEventsControl() {
     if (!user) { router.push('/admin'); return; }
 
     const { data: admin } = await supabase.from('admins').select('*').eq('email', user.email);
-    if (!admin || admin.length === 0) { router.push('/admin'); return; }
+    
+    // STRICT SELECTIVE ACCESS CHECK:
+    // Make sure they exist AND their permissions array includes 'events'
+    const currentAdmin = admin?.[0];
+    if (!currentAdmin || !currentAdmin.permissions?.includes('events')) { 
+      // Kick them out if they don't have events access
+      router.push('/admin'); 
+      return; 
+    }
 
     setUser(user);
     await fetchEvents();
