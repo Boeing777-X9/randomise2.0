@@ -31,8 +31,8 @@ export default function RootLayout({ children }) {
 
         <Floating 
           className="min-h-screen" 
-          sensitivity={2} 
-          easingFactor={0.1}
+          sensitivity={0.3} 
+          easingFactor={0.06}
         >
           <div aria-hidden="true">
             <FloatingElement depth={0.5} className="fixed top-10 left-10 pointer-events-none z-0">

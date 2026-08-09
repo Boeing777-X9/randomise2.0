@@ -1158,3 +1158,56 @@ body {
 .animated-heading-button .hover-text {
   transition: width 0.5s ease-in-out, filter 0.3s ease-in-out !important;
 }
+
+/* ===== HERO BACKGROUND BLOB ANIMATIONS ===== */
+/* CSS-driven so they run on the compositor thread, not the JS thread */
+@keyframes blob-purple {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33%       { transform: translate(40px, -30px) scale(1.08); }
+  66%       { transform: translate(-30px, 30px) scale(0.92); }
+}
+@keyframes blob-blue {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33%       { transform: translate(-30px, 40px) scale(0.92); }
+  66%       { transform: translate(20px, -20px) scale(1.08); }
+}
+@keyframes blob-pink {
+  0%, 100% { transform: translate(0px, 0px) scale(0.95); }
+  33%       { transform: translate(20px, 30px) scale(1.05); }
+  66%       { transform: translate(-40px, -30px) scale(0.95); }
+}
+.hero-blob-purple {
+  animation: blob-purple 24s ease-in-out infinite;
+  will-change: transform;
+}
+.hero-blob-blue {
+  animation: blob-blue 28s ease-in-out infinite;
+  will-change: transform;
+}
+.hero-blob-pink {
+  animation: blob-pink 32s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ===== EVENTS PAGE UTILITIES ===== */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.events-modal-scroll::-webkit-scrollbar { width: 5px; }
+.events-modal-scroll::-webkit-scrollbar-track { background: transparent; }
+.events-modal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+}
+.events-modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.15);
+}

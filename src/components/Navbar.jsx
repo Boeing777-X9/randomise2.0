@@ -1,219 +1,309 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence, useMotionValue, useSpring, useVelocity } from "framer-motion";
 
 const Navbar = () => {
-    const router = useRouter();
-    const [showMobileMenu, setShowMobileMenu] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
     const pathname = usePathname();
+    const [scrolled, setScrolled] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+    // Refs
+    const linksRowRef = useRef(null);   // the flex row that holds all <Link> elements
+    const linkRefs   = useRef({});      // href → <a> element
+    const isFirstRef = useRef(true);    // skip spring on initial placement
+
+    // Single motion value that lives for the component lifetime — no re-mounts
+    const cometX  = useMotionValue(0);
+    const springX = useSpring(cometX, { stiffness: 340, damping: 32, mass: 0.55 });
+
+    // Direction flip — reads velocity off the spring, not the raw target
+    const velocity      = useVelocity(springX);
+    const cometScaleX   = useMotionValue(1);                                    // 1 = right, -1 = left
+    const springScaleX  = useSpring(cometScaleX, { stiffness: 220, damping: 26 });
 
     useEffect(() => {
-        const scrollHandler = () => {
-            setScrolled(window.scrollY > 20);
-        };
-
-        window.addEventListener("scroll", scrollHandler);
-        scrollHandler();
-
-        return () => {
-            window.removeEventListener("scroll", scrollHandler);
-        };
-    }, []);
+        // Only flip when clearly moving; ignore tiny oscillations near rest
+        return velocity.on("change", (v) => {
+            if (v >  10) cometScaleX.set( 1);
+            else if (v < -10) cometScaleX.set(-1);
+        });
+    }, [velocity, cometScaleX]);
 
     const navLinks = [
-        { href: "/", label: "Home" },
-        { href: "/projects", label: "Projects" },
-        { href: "/events", label: "Events" },
-        { href: "/gallery", label: "Gallery" },
-        { href: "/teams", label: "Team" },
+        { href: "/",           label: "Home"       },
+        { href: "/projects",   label: "Projects"   },
+        { href: "/events",     label: "Events"     },
+        { href: "/gallery",    label: "Gallery"    },
+        { href: "/teams",      label: "Team"       },
         { href: "/newsletter", label: "Newsletter" },
-        { href: "/login", label: "Login" }
+        { href: "/login",      label: "Login"      },
     ];
 
-    
+    // ── Scroll listener ─────────────────────────────────────────
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener("scroll", onScroll, { passive: true });
+        onScroll();
+        return () => window.removeEventListener("scroll", onScroll);
+    }, []);
 
-    const handleBecomeMember = () => {
-        window.location.href = "/membership";
-    };
+    // ── Comet position updater ───────────────────────────────────
+    // Uses offsetLeft so coords are always relative to the container,
+    // immune to scroll / viewport shifts.
+    useEffect(() => {
+        const place = () => {
+            const el        = linkRefs.current[pathname];
+            const container = linksRowRef.current;
+            if (!el || !container) return;
+
+            // offsetLeft is relative to offsetParent; we want it relative to linksRowRef.
+            // Walk up the offsetParent chain to accumulate the correct offset.
+            let offset = 0;
+            let node   = el;
+            while (node && node !== container) {
+                offset += node.offsetLeft;
+                node    = node.offsetParent;
+            }
+            const center = offset + el.offsetWidth / 2;
+
+            if (isFirstRef.current) {
+                // Snap to position on first render — no swooping in from 0
+                cometX.jump(center);
+                isFirstRef.current = false;
+            } else {
+                cometX.set(center);
+            }
+        };
+
+        // Run once immediately, then after fonts/layout settle
+        place();
+        const t = setTimeout(place, 60);
+        window.addEventListener("resize", place);
+        return () => {
+            clearTimeout(t);
+            window.removeEventListener("resize", place);
+        };
+    }, [pathname, cometX]);
 
     return (
         <>
-            {/* WRAPPER CONTAINER TO ALLOW RELATIVE GLOW POSITIONING */}
             <div className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 w-[calc(100%-1rem)] sm:w-[92%] max-w-7xl z-50">
 
-                {/* TOUCH 10: AURORA GLOW BEHIND THE NAVBAR */}
-                <div className="absolute -inset-1 rounded-xl lg:rounded-full bg-gradient-to-r from-cyan-500/10 via-indigo-500/10 to-violet-500/10 blur-xl -z-10 pointer-events-none" />
+                {/* Ambient glow */}
+                <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-pink-500/[0.07] via-purple-500/[0.07] to-indigo-500/[0.07] blur-2xl -z-10 pointer-events-none" />
 
                 <motion.nav
-                    className={`relative w-full rounded-xl lg:rounded-full overflow-visible transition-all duration-500 border text-white font-sans ${
+                    className={`relative w-full rounded-2xl lg:rounded-full text-white font-sans border overflow-visible transition-[background,box-shadow,border-color] duration-500 ${
                         scrolled
-                            ? 'bg-[#080513] lg:bg-white/[0.08] backdrop-blur-xl lg:backdrop-blur-3xl border-white/10 shadow-[0_12px_40px_rgba(0,0,0,.45)] py-2.5 sm:py-3'
-                            : 'bg-[#080513] lg:bg-white/[0.04] backdrop-blur-xl lg:backdrop-blur-2xl border-white/10 lg:border-white/8 shadow-[0_8px_30px_rgba(0,0,0,.35)] lg:shadow-[0_8px_30px_rgba(0,0,0,.25)] py-3 sm:py-4'
+                            ? "bg-[#07040f]/92 backdrop-blur-2xl border-white/[0.09] shadow-[0_16px_48px_rgba(0,0,0,.55)]"
+                            : "bg-[#07040f]/76 backdrop-blur-xl  border-white/[0.07] shadow-[0_8px_32px_rgba(0,0,0,.40)]"
                     }`}
-                    initial={{ y: -100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    initial={{ y: -72, opacity: 0 }}
+                    animate={{ y: 0,   opacity: 1 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 >
-                    {/* TOUCH 3: GLASS REFLECTION SHINE OVERLAY */}
-                    <div className="pointer-events-none absolute inset-0 rounded-xl lg:rounded-full overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.12] via-white/[0.02] to-transparent" />
+                    {/* Top-edge shine */}
+                    <div className="pointer-events-none absolute inset-0 rounded-2xl lg:rounded-full overflow-hidden">
+                        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.035] to-transparent" />
                     </div>
 
-                    {/* TOUCH 4: SUBTLE AURORA PROJECTOR INSIDE NAV */}
-                    <motion.div
-                        animate={{ x: ["-30%", "40%", "-30%"] }}
-                        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-                        className="hidden lg:block absolute top-0 left-0 w-64 h-full bg-gradient-to-r from-cyan-400/5 via-violet-500/8 to-transparent blur-3xl pointer-events-none"
-                    />
+                    <div className="w-full mx-auto px-3 sm:px-6">
+                        <div className="flex items-center justify-between">
 
-                    <div className="w-full mx-auto px-3 sm:px-8">
-                        <div className="flex items-center justify-between relative z-10">
+                            {/* ── Logo ─────────────────────────────────────── */}
+                            <motion.div whileHover={{ scale: 1.04 }} transition={{ duration: 0.18 }}>
+                                <Link href="/" className="flex items-center py-2.5 sm:py-3">
+                                    <div className="flex items-center justify-center p-2 rounded-xl bg-white/[0.05] border border-white/[0.1]">
+                                        <img
+                                            src="/nav-logo.svg"
+                                            alt="Randomize Logo"
+                                            className="h-7 sm:h-8 w-auto object-contain"
+                                        />
+                                    </div>
+                                </Link>
+                            </motion.div>
 
-                                                {/* TOUCH 6: LOGO WITH ELEVATED HOVER & GLOW */}
-                                                <motion.div
-                                                    whileHover={{ scale: 1.05 }}
-                                                    transition={{ duration: 0.2 }}
-                                                    className="flex items-center filter drop-shadow-[0_0_18px_rgba(125,211,252,.3)]"
-                                                >
-                                                    <Link href="/" className="flex items-center group">
-                                                        
-                                                        <div className="flex items-center justify-center p-2 rounded-lg lg:rounded-xl bg-white/[0.03] backdrop-blur-md border border-white/[0.08] bg-gradient-to-r from-purple-500/10 via-indigo-500/5 to-cyan-500/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
-                                                            <img
-                                                                src="/nav-logo.svg" 
-                                                                alt="Randomize Logo"
-                                                                className="h-7 sm:h-8 w-auto object-contain"
-                                                            />
-                                                        </div>
-                                                    </Link>
-                                                </motion.div>
-                                                                            {/* DESKTOP NAVIGATION LINKS */}
-                            <div className="hidden lg:flex items-center space-x-2">
-                                {navLinks.map((link, index) => {
+                            {/* ── Desktop links ────────────────────────────── */}
+                            <div
+                                ref={linksRowRef}
+                                className="hidden lg:flex items-center gap-0.5 relative py-2.5 sm:py-3"
+                            >
+                                {/* ── Comet ── lives here so x coords are local */}
+                                <motion.div
+                                    aria-hidden
+                                    className="absolute bottom-1 left-0 pointer-events-none"
+                                    style={{ x: springX, translateX: "-50%", scaleX: springScaleX }}
+                                >
+                                    {/* Soft glow bloom */}
+                                    <div style={{
+                                        position:     "absolute",
+                                        bottom:        0,
+                                        left:         "50%",
+                                        transform:    "translateX(-50%)",
+                                        width:         20,
+                                        height:        20,
+                                        borderRadius: "50%",
+                                        background:   "radial-gradient(circle, rgba(244,114,182,0.5) 0%, transparent 70%)",
+                                        filter:       "blur(4px)",
+                                    }} />
+
+                                    {/* Comet tail — points left */}
+                                    <div style={{
+                                        position:   "absolute",
+                                        bottom:      4,
+                                        right:       4,
+                                        width:       44,
+                                        height:      1.5,
+                                        borderRadius: 999,
+                                        background:  "linear-gradient(to left, rgba(249,168,212,0.85), rgba(236,72,153,0.4), transparent)",
+                                    }} />
+
+                                    {/* Star glyph */}
+                                    <div style={{
+                                        position:   "relative",
+                                        fontSize:    10,
+                                        lineHeight:  1,
+                                        color:       "#fda4af",
+                                        textShadow: "0 0 6px #f472b6, 0 0 14px #ec4899, 0 0 26px rgba(244,114,182,0.55)",
+                                        userSelect: "none",
+                                        width:       10,
+                                        textAlign:  "center",
+                                    }}>
+                                        ✦
+                                    </div>
+                                </motion.div>
+
+                                {/* Links */}
+                                {navLinks.map((link, i) => {
                                     const isActive = pathname === link.href;
-
                                     return (
                                         <motion.div
                                             key={link.href}
-                                            initial={{ opacity: 0, y: -10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.05, duration: 0.4 }}
+                                            initial={{ opacity: 0, y: -6 }}
+                                            animate={{ opacity: 1, y:  0 }}
+                                            transition={{ delay: i * 0.04, duration: 0.3 }}
                                         >
                                             <Link
                                                 href={link.href}
-                                                className="relative px-5 py-2 rounded-full transition-all duration-300 hover:text-white text-gray-200 text-sm font-medium tracking-wide flex items-center justify-center group"
+                                                ref={(el) => { if (el) linkRefs.current[link.href] = el; }}
+                                                className={`relative px-4 py-1.5 rounded-full text-sm font-medium tracking-wide flex items-center justify-center transition-colors duration-200 group ${
+                                                    isActive
+                                                        ? "text-white"
+                                                        : "text-white/50 hover:text-white/85"
+                                                }`}
                                             >
-                                                <span className="relative z-10">{link.label}</span>
-
-                                                {/* TOUCH 5: FLUID ACTIVE TAB LAYOUT CAP */}
+                                                {/* Hover bg */}
+                                                <span className="absolute inset-0 rounded-full bg-white/[0.05] opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                                {/* Active bg */}
                                                 {isActive && (
-                                                    <motion.div
-                                                        layoutId="nav-active"
-                                                        className="absolute inset-0 rounded-full bg-white/[0.05]"
-                                                    />
+                                                    <span className="absolute inset-0 rounded-full bg-white/[0.07]" />
                                                 )}
-
-                                                {/* GRADIENT HOVER FILL - matches Newsletter button */}
-                                                <motion.div
-                                                    className="absolute inset-0 bg-gradient-to-r from-[#2D0FF7]/20 via-[#A10FF2]/20 to-[#F20059]/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                                />
-
-                                                {/* TOUCH 8: PREMIUM HOVER GRADIENT UNDERLINE - matches Newsletter button */}
-                                                <motion.div
-                                                    className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] group-hover:w-[calc(100%-2rem)] group-hover:left-4 transition-all duration-300"
-                                                />
+                                                <span className="relative z-10">{link.label}</span>
                                             </Link>
                                         </motion.div>
                                     );
                                 })}
                             </div>
 
-                            {/* Two Buttons */}
-                            <div className="hidden lg:flex items-center gap-2 -translate-x-2">
-                                
-
-                                {/* Become a Member Button - Highlighted */}
+                            {/* ── CTA button ───────────────────────────────── */}
+                            <div className="hidden lg:flex items-center">
                                 <motion.button
-                                    onClick={handleBecomeMember}
-                                    className="relative px-3 py-2 text-white font-medium text-sm bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => { window.location.href = "/membership"; }}
+                                    className="relative px-4 py-2 text-sm font-semibold text-white rounded-full overflow-hidden"
+                                    whileHover={{ scale: 1.04 }}
+                                    whileTap={{ scale: 0.96 }}
+                                    style={{
+                                        background: "linear-gradient(135deg, #7c3aed 0%, #c026d3 50%, #e11d48 100%)",
+                                        boxShadow:  "0 0 18px rgba(192,38,211,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
+                                    }}
                                 >
-                                    Become a Member
+                                    {/* Shimmer sweep */}
+                                    <motion.span
+                                        className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                                        initial={{ x: "-120%" }}
+                                        whileHover={{ x: "220%" }}
+                                        transition={{ duration: 0.45 }}
+                                    />
+                                    <span className="relative z-10">Become a Member</span>
                                 </motion.button>
                             </div>
 
-                            {/* MOBILE MENU INTERACTIVE TOGGLE */}
+                            {/* ── Mobile toggle ────────────────────────────── */}
                             <motion.button
                                 type="button"
-                                className="lg:hidden relative w-11 h-11 rounded-lg flex items-center justify-center text-white bg-white/[0.04] border border-white/10 hover:text-white focus:outline-none"
+                                className="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center text-white bg-white/[0.05] border border-white/10 hover:bg-white/[0.08] transition-colors"
                                 onClick={() => setShowMobileMenu(!showMobileMenu)}
-                                whileTap={{
-                                    scale: 0.95,
-                                    background: "linear-gradient(to right, #2D0FF7, #A10FF2, #F20059)"
-                                }}
-                                transition={{ duration: 0.2 }}
+                                whileTap={{ scale: 0.9 }}
                             >
-                                <div className="relative h-6 w-6">
+                                <div className="relative h-5 w-5">
                                     <motion.span
-                                        className="block absolute h-0.5 w-6 bg-current transform transition duration-300"
-                                        animate={showMobileMenu ? { rotate: 45, y: 0 } : { rotate: 0, y: -6 }}
+                                        className="block absolute h-0.5 w-5 bg-current rounded-full"
+                                        animate={showMobileMenu ? { rotate: 45, y: 0 } : { rotate: 0, y: -5 }}
+                                        transition={{ duration: 0.22 }}
                                     />
                                     <motion.span
-                                        className="block absolute h-0.5 w-6 bg-current transform transition duration-300"
+                                        className="block absolute h-0.5 w-5 bg-current rounded-full"
                                         animate={showMobileMenu ? { opacity: 0 } : { opacity: 1 }}
+                                        transition={{ duration: 0.18 }}
                                     />
                                     <motion.span
-                                        className="block absolute h-0.5 w-6 bg-current transform transition duration-300"
-                                        animate={showMobileMenu ? { rotate: -45, y: 0 } : { rotate: 0, y: 6 }}
+                                        className="block absolute h-0.5 w-5 bg-current rounded-full"
+                                        animate={showMobileMenu ? { rotate: -45, y: 0 } : { rotate: 0, y: 5 }}
+                                        transition={{ duration: 0.22 }}
                                     />
                                 </div>
                             </motion.button>
+
                         </div>
                     </div>
 
-                    {/* TOUCH 9: UPGRADED MOBILE GLASS OVERLAY DRAWER */}
+                    {/* ── Mobile drawer ────────────────────────────────────── */}
                     <AnimatePresence>
                         {showMobileMenu && (
                             <motion.div
-                                className="absolute left-0 right-0 top-full mt-2 lg:hidden isolate rounded-xl bg-[#070411] border border-white/10 shadow-[0_24px_70px_rgba(0,0,0,.72)] overflow-hidden"
-                                initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                className="absolute left-0 right-0 top-full mt-2 lg:hidden rounded-2xl bg-[#07040f]/95 backdrop-blur-2xl border border-white/[0.08] shadow-[0_24px_60px_rgba(0,0,0,.70)] overflow-hidden"
+                                initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                                animate={{ opacity: 1, y:  0, scale: 1   }}
+                                exit   ={{ opacity: 0, y: -8, scale: 0.97 }}
+                                transition={{ duration: 0.22, ease: "easeOut" }}
                             >
-                                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
-                                <div className="max-h-[calc(100vh-7rem)] overflow-y-auto px-3 py-3 space-y-1 bg-[#070411]">
-                                    {navLinks.map((link) => (
-                                        <Link
-                                            key={link.href}
-                                            href={link.href}
-                                            className={`block px-4 py-2.5 text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-[#2D0FF7]/20 hover:via-[#A10FF2]/20 hover:to-[#F20059]/20 rounded-lg transition-all duration-300 text-sm font-medium border ${
-                                                pathname === link.href
-                                                    ? 'border-[#A10FF2]/40 bg-white/[0.08] text-white'
-                                                    : 'border-transparent hover:border-[#A10FF2]/20'
-                                            }`}
-                                            onClick={() => setShowMobileMenu(false)}
-                                        >
-                                            {link.label}
-                                        </Link>
-                                    ))}
+                                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-pink-400/40 to-transparent" />
+                                <div className="px-3 py-3 space-y-0.5">
+                                    {navLinks.map((link) => {
+                                        const isActive = pathname === link.href;
+                                        return (
+                                            <Link
+                                                key={link.href}
+                                                href={link.href}
+                                                onClick={() => setShowMobileMenu(false)}
+                                                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                                                    isActive
+                                                        ? "text-white bg-white/[0.09] border-pink-500/20"
+                                                        : "text-white/55 hover:text-white hover:bg-white/[0.05] border-transparent"
+                                                }`}
+                                            >
+                                                {isActive && (
+                                                    <span className="text-pink-400 leading-none" style={{ fontSize: 8 }}>✦</span>
+                                                )}
+                                                {link.label}
+                                            </Link>
+                                        );
+                                    })}
 
-                                    {/* Mobile Buttons */}
-                                    <div className="border-t border-[#A10FF2]/20 mt-3 pt-3 space-y-2">
-                                        
+                                    <div className="border-t border-white/[0.06] mt-2 pt-2">
                                         <motion.button
-                                            onClick={() => {
-                                                handleBecomeMember();
-                                                setShowMobileMenu(false);
+                                            onClick={() => { window.location.href = "/membership"; setShowMobileMenu(false); }}
+                                            className="w-full px-4 py-3 text-sm font-semibold text-white rounded-xl"
+                                            style={{
+                                                background: "linear-gradient(135deg, #7c3aed 0%, #c026d3 50%, #e11d48 100%)",
+                                                boxShadow:  "0 4px 20px rgba(192,38,211,0.3)",
                                             }}
-                                            className="w-full px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300"
                                             whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.95 }}
+                                            whileTap  ={{ scale: 0.97 }}
                                         >
                                             Become a Member
                                         </motion.button>

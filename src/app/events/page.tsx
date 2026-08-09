@@ -31,7 +31,10 @@ const EventCard = memo(({ event, index, onSelect }: any) => (
     viewport={{ once: true, margin: "-40px" }}
     onClick={() => onSelect(event)}
   >
-    <div className="relative h-[420px] md:h-[480px] rounded-[1.5rem] overflow-hidden border border-white/[0.06] bg-gray-950">
+    <div
+      className="relative h-[420px] md:h-[480px] rounded-[1.5rem] overflow-hidden border border-white/[0.06] bg-gray-950"
+      style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+    >
       {event.image ? (
         <img
           src={event.image}
@@ -323,6 +326,7 @@ export default function EventsPage() {
               <img
                 src={bannerEvent.image}
                 alt={bannerEvent.title}
+                loading="eager"
                 fetchPriority="high"
                 className="absolute inset-0 w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
               />
@@ -381,33 +385,6 @@ export default function EventsPage() {
         </AnimatePresence>,
         document.body
       )}
-      <style jsx global>{`
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .line-clamp-3 {
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .events-modal-scroll::-webkit-scrollbar {
-          width: 5px;
-        }
-        .events-modal-scroll::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .events-modal-scroll::-webkit-scrollbar-thumb {
-          background: rgba(255,255,255,0.08);
-          border-radius: 8px;
-        }
-        .events-modal-scroll::-webkit-scrollbar-thumb:hover {
-          background: rgba(255,255,255,0.15);
-        }
-      `}</style>
     </div>
   );
 }
