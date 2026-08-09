@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import Floating, { FloatingElement } from "@/fancy/components/image/parallax-floating";
-import { Bebas_Neue, Inter } from "next/font/google";
+import { Bebas_Neue, EB_Garamond } from "next/font/google";
 import HeroBackground from "@/components/HeroBackground";
 
 const bebasNeue = Bebas_Neue({
@@ -12,10 +12,12 @@ const bebasNeue = Bebas_Neue({
   display: 'swap',
 });
 
-const inter = Inter({
+const ebGaramond = EB_Garamond({
   subsets: ['latin'],
-  variable: '--font-inter',
+  style: ['normal', 'italic'],
+  variable: '--font-garamond',
   display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
 });
 
 export const metadata = {
@@ -26,7 +28,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body className={`relative overflow-x-hidden bg-[#05030B] ${bebasNeue.variable} ${inter.variable}`}>
+      <body className={`relative overflow-x-hidden bg-[#05030B] ${bebasNeue.variable} ${ebGaramond.variable}`}>
         <HeroBackground isFixed={true} />
 
         <Floating 

@@ -153,7 +153,7 @@ export default function Projects() {
               {title.split(' ').map((word, index) => (
                 <motion.span 
                   key={index} 
-                  className="block bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent drop-shadow-lg"
+                  className="block text-slate-300 tracking-tight drop-shadow-[0_0_10px_rgba(56,189,248,0.12)]"
                   initial={{ opacity: 0, x: -20 }}
                   animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
                   transition={{ delay: index * 0.2, duration: 0.6 }}

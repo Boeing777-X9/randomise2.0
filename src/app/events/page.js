@@ -51,7 +51,7 @@ const EventCard = ({ event, index, onSelect }) => (
 
       {/* Bottom content */}
       <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7">
-        <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-tight mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-300 group-hover:to-pink-300 transition-all duration-300">
+        <h3 className="text-xl sm:text-2xl md:text-3xl font-heading text-slate-300 leading-tight mb-2 drop-shadow-[0_0_10px_rgba(56,189,248,0.12)] uppercase tracking-wider">
           {event.title}
         </h3>
         <p className="text-sm text-gray-400 leading-relaxed line-clamp-3 sm:line-clamp-2 font-light">
@@ -139,7 +139,7 @@ const EventModal = ({ event, onClose }) => {
               <span className="text-purple-300 text-sm font-medium">{event.date}</span>
             </div>
 
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-4 sm:mb-6 leading-tight">
+            <h2 className="text-2xl sm:text-4xl font-heading text-slate-300 tracking-wider uppercase drop-shadow-[0_0_12px_rgba(56,189,248,0.15)] mb-4 sm:mb-6 leading-tight">
               {event.title}
             </h2>
 
@@ -209,11 +209,8 @@ export default function EventsPage() {
             </div>
 
             <div className="events-hero-copy">
-              <h1 className="events-hero-title">
-                <span className="text-white">ALL </span>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-500">
-                  EVENTS
-                </span>
+              <h1 className="events-hero-title text-slate-300 drop-shadow-[0_0_12px_rgba(56,189,248,0.15)]">
+                ALL EVENTS
               </h1>
 
               <p className="events-hero-description">
@@ -236,10 +233,10 @@ export default function EventsPage() {
             <button
               key={yr}
               onClick={() => setYearFilter(yr)}
-              className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium border transition-all duration-300 ${
+              className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium border transition-all duration-300 ${
                 yearFilter === yr
-                  ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.15)]'
-                  : 'bg-white/[0.03] text-gray-400 border-white/[0.08] hover:bg-white/[0.06] hover:text-white'
+                  ? 'bg-transparent border-sky-200/70 text-sky-100 shadow-[0_0_14px_rgba(186,230,253,0.3)]'
+                  : 'bg-white/[0.03] text-gray-400 border-white/[0.08] hover:bg-white/[0.06] hover:text-sky-200 hover:border-sky-300/30'
               }`}
             >
               {yr}
@@ -337,19 +334,22 @@ export default function EventsPage() {
           width: 100%;
           margin: 0 0 1rem;
           font-size: clamp(2.75rem, 16vw, 5.5rem);
-          font-weight: 900;
+          font-family: var(--font-bebas), 'Bebas Neue', 'Impact', sans-serif;
+          font-weight: 400;
           line-height: 0.95;
-          letter-spacing: 0;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
         }
         .events-hero-description {
           display: block;
           width: min(100%, 42rem);
           max-width: 100%;
           margin: 0;
+          font-family: var(--font-garamond), 'EB Garamond', Georgia, serif;
           color: rgb(156 163 175);
-          font-size: 0.95rem;
-          line-height: 1.65;
-          font-weight: 300;
+          font-size: 1.05rem;
+          line-height: 1.75;
+          font-weight: 400;
           overflow-wrap: normal;
           word-break: normal;
         }
@@ -359,8 +359,8 @@ export default function EventsPage() {
             line-height: 0.85;
           }
           .events-hero-description {
-            font-size: 1.125rem;
-            color: rgb(107 114 128);
+            font-size: 1.2rem;
+            color: rgb(148 163 184);
           }
         }
         @media (min-width: 768px) {

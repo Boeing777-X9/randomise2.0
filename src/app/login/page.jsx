@@ -43,7 +43,7 @@ export default function Landing() {
                   transition={{ duration: 0.5 }}
                   className="mb-8"
                 >
-                  <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 bg-clip-text text-transparent mb-2">
+                  <h1 className="text-3xl sm:text-4xl font-bold text-slate-300 tracking-tight mb-2 drop-shadow-[0_0_12px_rgba(56,189,248,0.15)]">
                     {isLogin ? "Welcome Back" : "Join Randomize()"}
                   </h1>
                   <p className="text-gray-300 text-sm sm:text-base">

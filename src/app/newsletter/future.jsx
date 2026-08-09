@@ -88,7 +88,7 @@ export default function NewsletterComingSoonPage() {
             </span>
           </div>
 
-          <h1 className="w-full text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] bg-clip-text text-transparent mb-4 leading-tight px-2">
+          <h1 className="w-full text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-300 tracking-tight mb-4 leading-tight px-2 drop-shadow-[0_0_12px_rgba(56,189,248,0.15)]">
             Stay in the Loop
           </h1>
 

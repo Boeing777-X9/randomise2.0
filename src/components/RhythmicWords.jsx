@@ -13,7 +13,7 @@ export default function RhythmicWords() {
         lineHeight: 1 
       }}
     >
-      <span className="text-white/60 whitespace-nowrap">
+      <span className="text-white/60 whitespace-nowrap" style={{ fontFamily: 'var(--font-bebas, "Bebas Neue", sans-serif)' }}>
         IT&apos;S TIME TO
       </span>
 

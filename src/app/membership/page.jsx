@@ -64,7 +64,7 @@ export default function MembershipForm() {
             <GlassCard 
               className="w-full mb-8 relative mt-5"
             >
-              <h2 className="text-lg sm:text-2xl font-extrabold mb-5 bg-gradient-to-r from-purple-400 via-indigo-200 to-cyan-400 bg-clip-text text-transparent tracking-tight text-center leading-relaxed dropped-glow-sm">
+              <h2 className="text-lg sm:text-2xl font-extrabold mb-5 text-slate-300 tracking-tight text-center leading-relaxed drop-shadow-[0_0_12px_rgba(56,189,248,0.15)]">
                 ✨ Welcome to Randomize(); <br />
                 <span className="text-sm font-medium tracking-normal text-gray-400 block mt-1">The Official Computing Club of MUJ</span>
               </h2>

@@ -82,7 +82,7 @@ export default function NewsletterComingSoonPage() {
         <div style={{ maxWidth: "56rem", marginLeft: "auto", marginRight: "auto", textAlign: "center" }}>
 
           {/* Heading */}
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] bg-clip-text text-transparent mb-4 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-slate-300 tracking-tight mb-4 leading-tight drop-shadow-[0_0_12px_rgba(56,189,248,0.15)]">
             Stay in the Loop
           </h1>
 
@@ -151,19 +151,20 @@ export default function NewsletterComingSoonPage() {
                   disabled={status === "loading"}
                   style={{
                     padding: "0.75rem 1.5rem",
-                    borderRadius: "0.75rem",
+                    borderRadius: "0.5rem",
                     fontWeight: "700",
-                    color: "white",
-                    background: "linear-gradient(to right, #2D0FF7, #A10FF2, #F20059)",
-                    border: "none",
+                    color: "#e0f2fe",
+                    background: "transparent",
+                    border: "1.5px solid rgba(186,230,253,0.65)",
                     cursor: status === "loading" ? "not-allowed" : "pointer",
                     opacity: status === "loading" ? 0.6 : 1,
                     whiteSpace: "nowrap",
                     fontSize: "0.95rem",
                     transition: "transform 0.15s, box-shadow 0.15s",
+                    boxShadow: "0 0 12px rgba(186,230,253,0.2)",
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.02)"; e.currentTarget.style.boxShadow = "0 0 20px rgba(186,230,253,0.45)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(186,230,253,0.2)"; }}
                 >
                   {status === "loading" ? "Subscribing…" : "Subscribe"}
                 </button>
@@ -209,7 +210,7 @@ export default function NewsletterComingSoonPage() {
 
           {/* Featured Edition */}
           <div style={{ marginTop: "5rem" }}>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-8 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-slate-300 drop-shadow-[0_0_12px_rgba(56,189,248,0.15)]">
               Featured Edition
             </h2>
 

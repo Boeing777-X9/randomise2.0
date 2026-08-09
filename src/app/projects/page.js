@@ -39,19 +39,10 @@ export default function ProjectsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <motion.div
-            className="inline-block mb-6"
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <span className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-sm font-semibold uppercase tracking-wider">
-              Innovation Hub
-            </span>
-          </motion.div>
+          
           
           <motion.h1 
-            className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent"
+            className="text-5xl md:text-7xl font-bold mb-8 text-slate-300 tracking-tight drop-shadow-[0_0_12px_rgba(56,189,248,0.15)]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 0.4 }}
@@ -66,8 +57,8 @@ export default function ProjectsPage() {
             transition={{ duration: 1, delay: 0.6 }}
           >
             Explore our rich inventory of innovative projects that showcase our 
-            <span className="text-blue-400 font-semibold"> creativity</span> and 
-            <span className="text-purple-400 font-semibold"> technical expertise</span>
+            <span className="text-sky-400 font-semibold italic"> creativity</span> and 
+            <span className="text-sky-400 font-semibold italic"> technical expertise</span>
           </motion.p>
         </motion.div>
       </div>
@@ -84,10 +75,10 @@ export default function ProjectsPage() {
             <motion.button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 backdrop-blur-sm border ${
+              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 backdrop-blur-sm border ${
                 activeCategory === category.id
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 border-transparent text-white shadow-lg'
-                  : 'bg-white/10 border-white/20 text-gray-300 hover:bg-white/20 hover:text-white'
+                  ? 'bg-transparent border-sky-200/70 text-sky-100 shadow-[0_0_16px_rgba(186,230,253,0.3)]'
+                  : 'bg-white/5 border-white/15 text-gray-400 hover:border-sky-300/40 hover:text-sky-200 hover:bg-white/5'
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -242,14 +233,14 @@ export default function ProjectsPage() {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-slate-300 tracking-tight drop-shadow-[0_0_12px_rgba(56,189,248,0.15)]">
             Want to collaborate with us?
           </h2>
           <p className="text-gray-300 text-lg mb-8">
             We're always looking for passionate individuals to join our innovative projects
           </p>
           <motion.button 
-            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-blue-500/25"
+            className="px-8 py-4 bg-transparent border border-sky-200/70 text-sky-100 rounded-lg font-semibold transition-all duration-300 shadow-[0_0_14px_rgba(186,230,253,0.2)] hover:shadow-[0_0_26px_rgba(186,230,253,0.45)]"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >

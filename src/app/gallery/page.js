@@ -163,7 +163,7 @@ export default function Gallery() {
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-5xl md:text-7xl text-center font-bold pb-4 mb-8 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500"
+          className="text-5xl md:text-7xl text-center font-bold pb-4 mb-8 text-slate-300 tracking-[0.12em] drop-shadow-[0_0_12px_rgba(56,189,248,0.15)]"
         >
           Gallery
         </motion.h1>
@@ -181,15 +181,15 @@ export default function Gallery() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                className={`px-5 py-2.5 rounded-lg text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
                   selectedCategory === cat
-                    ? 'bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] text-white shadow-lg shadow-purple-500/20'
-                    : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                    ? 'bg-transparent border border-sky-200/70 text-sky-100 shadow-[0_0_14px_rgba(186,230,253,0.3)]'
+                    : 'bg-white/5 border border-white/10 text-gray-400 hover:text-sky-200 hover:border-sky-300/40 hover:bg-white/5'
                 }`}
               >
                 {cat}
-                <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                  selectedCategory === cat ? 'bg-white/20 text-white' : 'bg-white/10 text-gray-500'
+                <span className={`text-[10px] px-2 py-0.5 rounded-md ${
+                  selectedCategory === cat ? 'bg-sky-200/15 text-sky-200' : 'bg-white/10 text-gray-500'
                 }`}>
                   {count}
                 </span>
@@ -211,10 +211,10 @@ export default function Gallery() {
                 return (
                   <div key={cat} className="mb-20">
                     <div className="flex items-center gap-4 mb-8">
-                      <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+                      <h2 className="text-xl md:text-2xl font-semibold italic text-slate-300 tracking-wide drop-shadow-[0_0_10px_rgba(56,189,248,0.12)]">
                         {cat}
                       </h2>
-                      <div className="h-[1px] flex-1 bg-gradient-to-r from-purple-500/50 to-transparent" />
+                      <div className="h-[1px] flex-1 bg-gradient-to-r from-sky-300/25 to-transparent" />
                     </div>
                     <div className="flex flex-wrap justify-start gap-4">
                       {catPhotos.map((photo, idx) => (

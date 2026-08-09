@@ -139,11 +139,9 @@ const NewEvents = () => {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-5xl md:text-7xl font-black mb-6 pt-4">
-            <span className="bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] bg-clip-text text-transparent">
+          <h2 className="text-5xl md:text-7xl font-black mb-6 pt-4 text-slate-300 tracking-tight drop-shadow-[0_0_12px_rgba(56,189,248,0.15)]">
               EVENTS
-            </span>
-          </h2>
+            </h2>
           
         </motion.div>
 
@@ -159,10 +157,10 @@ const NewEvents = () => {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-6 py-3 rounded-full border transition-all duration-300 font-medium ${
+              className={`px-6 py-3 rounded-lg border transition-all duration-300 font-medium ${
                 selectedCategory === category
-                  ? 'bg-gradient-to-r from-[#2D0FF7] to-[#A10FF2] border-transparent text-white shadow-lg shadow-purple-500/25'
-                  : 'border-gray-600 text-gray-300 hover:border-purple-400 hover:text-purple-300'
+                  ? 'bg-transparent border-sky-200/70 text-sky-100 shadow-[0_0_14px_rgba(186,230,253,0.3)]'
+                  : 'border-gray-600 text-gray-300 hover:border-sky-300/40 hover:text-sky-200'
               }`}
             >
               {category}

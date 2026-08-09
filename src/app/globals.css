@@ -137,7 +137,7 @@
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+    font-family: var(--font-garamond), 'EB Garamond', 'Garamond', 'Georgia', serif;
     line-height: var(--line-height-normal);
     color: var(--color-text-primary);
     background: var(--color-background);
@@ -145,22 +145,21 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     min-height: 100vh;
+    font-size: 1.0625rem;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    line-height: var(--line-height-tight);
-    font-weight: 700;
-    letter-spacing: -0.025em;
+    font-family: var(--font-bebas), 'Bebas Neue', 'Impact', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    font-weight: 400; /* Bebas Neue is inherently bold at 400 */
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 
-  /* Enhanced heading styles */
   h1 {
-    /* background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%); */
-    background-clip: text;
-    -webkit-background-clip: text;
-    font-weight: 800;
-    letter-spacing: -0.04em;
+    font-weight: 400;
+    letter-spacing: 0.05em;
   }
 
   h2 {
@@ -174,9 +173,30 @@
   }
 
   p {
+    font-family: var(--font-garamond), 'EB Garamond', 'Garamond', 'Georgia', serif;
     color: var(--color-text-secondary);
-    line-height: 1.7;
+    line-height: 1.75;
     font-weight: 400;
+  }
+
+  li, td, th, blockquote, figcaption {
+    font-family: var(--font-garamond), 'EB Garamond', 'Garamond', 'Georgia', serif;
+  }
+
+  /* Preserve Bebas Neue on elements that explicitly use font-heading */
+  .font-heading {
+    font-family: var(--font-bebas), 'Bebas Neue', 'Impact', sans-serif !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .font-body {
+    font-family: var(--font-garamond), 'EB Garamond', 'Garamond', 'Georgia', serif !important;
+  }
+
+  /* Buttons and inputs stay neutral */
+  button, input, textarea, select {
+    font-family: var(--font-garamond), 'EB Garamond', 'Garamond', 'Georgia', serif;
   }
 
   a {
@@ -188,9 +208,10 @@
   a:hover {
     color: var(--color-primary-dark);
   }
-}
 
 /* ===== COMPONENT STYLES ===== */
+} /* end @layer base */
+
 @layer components {
   /* Navbar Component */
   .navbar {

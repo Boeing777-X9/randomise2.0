@@ -190,7 +190,7 @@ const Navbar = () => {
                                             <Link
                                                 href={link.href}
                                                 ref={(el) => { if (el) linkRefs.current[link.href] = el; }}
-                                                className={`relative px-4 py-1.5 rounded-full text-sm font-medium tracking-wide flex items-center justify-center transition-colors duration-200 group ${
+                                                className={`relative px-4 py-1.5 rounded-full text-base font-medium tracking-wide flex items-center justify-center transition-colors duration-200 group ${
                                                     isActive
                                                         ? "text-white"
                                                         : "text-white/50 hover:text-white/85"
@@ -213,21 +213,17 @@ const Navbar = () => {
                             <div className="hidden lg:flex items-center">
                                 <motion.button
                                     onClick={() => { window.location.href = "/membership"; }}
-                                    className="relative px-4 py-2 text-sm font-semibold text-white rounded-full overflow-hidden"
+                                    className="relative px-4 py-2 text-sm font-semibold text-sky-100 rounded-lg overflow-hidden border border-sky-200/70"
                                     whileHover={{ scale: 1.04 }}
                                     whileTap={{ scale: 0.96 }}
                                     style={{
-                                        background: "linear-gradient(135deg, #7c3aed 0%, #c026d3 50%, #e11d48 100%)",
-                                        boxShadow:  "0 0 18px rgba(192,38,211,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
+                                        background: "transparent",
+                                        boxShadow: "0 0 12px rgba(186,230,253,0.2)",
+                                        transition: "box-shadow 0.2s",
                                     }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 0 22px rgba(186,230,253,0.45)"; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 0 12px rgba(186,230,253,0.2)"; }}
                                 >
-                                    {/* Shimmer sweep */}
-                                    <motion.span
-                                        className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                                        initial={{ x: "-120%" }}
-                                        whileHover={{ x: "220%" }}
-                                        transition={{ duration: 0.45 }}
-                                    />
                                     <span className="relative z-10">Become a Member</span>
                                 </motion.button>
                             </div>
@@ -297,12 +293,12 @@ const Navbar = () => {
                                     <div className="border-t border-white/[0.06] mt-2 pt-2">
                                         <motion.button
                                             onClick={() => { window.location.href = "/membership"; setShowMobileMenu(false); }}
-                                            className="w-full px-4 py-3 text-sm font-semibold text-white rounded-xl"
+                                            className="w-full px-4 py-3 text-sm font-semibold text-sky-100 rounded-lg border border-sky-200/70"
                                             style={{
-                                                background: "linear-gradient(135deg, #7c3aed 0%, #c026d3 50%, #e11d48 100%)",
-                                                boxShadow:  "0 4px 20px rgba(192,38,211,0.3)",
+                                                background: "transparent",
+                                                boxShadow: "0 0 12px rgba(186,230,253,0.2)",
                                             }}
-                                            whileHover={{ scale: 1.02 }}
+                                            whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(186,230,253,0.45)" }}
                                             whileTap  ={{ scale: 0.97 }}
                                         >
                                             Become a Member
