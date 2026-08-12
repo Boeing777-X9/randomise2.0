@@ -168,7 +168,7 @@ const Core2026 = [
     imageUrl: "/team2026-27/Vikhyati.jpeg",
     github: "",
     linkedinUrl: "https://www.linkedin.com/in/vikhyati-viha-bb85802a2",
-    quote: "I have no idea what I am doing, but apparently it’s working. Or I am very easygoing once everything goes my way.",
+    quote: "I have no idea what I am doing, but apparently it’s working.",
   },
   {
     id: 20,
@@ -246,7 +246,7 @@ const Core2026 = [
     id: 38,
     name: "Pratyush Verma",
     role: "Head of Social Media",
-    imageUrl: "/team2026-27/Pratyush.jpg",
+    imageUrl: "https://res.cloudinary.com/vm6fmwen/image/upload/v1786516429/IMG_20260705_122255.jpg_hsk9ok.jpg",
     github: "",
     linkedinUrl: "",
     quote: "The perfect lap requires both speed and precision.",

@@ -15,7 +15,7 @@ const Exec2026 = [
     imageUrl: "/team2026-27/Akshit.jpg",
     github: "",
     linkedinUrl: "https://www.linkedin.com/in/akshit-yadav-335694300",
-    quote: "Hope we can make your experience with us a great one.",
+    quote: "Bigger Fish: Fried.",
   },
   {
     id: 2,
@@ -40,9 +40,9 @@ const Exec2026 = [
     name: "Aditya Mukherjee",
     role: "Technical Secretary",
     imageUrl: "https://res.cloudinary.com/vm6fmwen/image/upload/v1786336396/Aditya_qxzfae.jpg",
-    github: "",
+    github: "https://github.com/adimukh1234",
     linkedinUrl: "https://www.linkedin.com/in/adityamukherjee100",
-    quote: "",
+    quote: "heyyyy",
   },
   {
     id: 5,

@@ -191,6 +191,15 @@ export default function AdminDashboard() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              onClick={() => router.push('/admin/registrations')}
+              className="py-2 px-5 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300"
+            >
+              Registrations Desk
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => router.push('/admin/gallery')}
               className="py-2 px-5 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] hover:shadow-xl hover:shadow-purple-500/40 transition-all duration-300"
             >
