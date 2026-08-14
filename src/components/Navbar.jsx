@@ -21,7 +21,7 @@ const Navbar = () => {
 
     // Direction flip — reads velocity off the spring, not the raw target
     const velocity      = useVelocity(springX);
-    const cometScaleX   = useMotionValue(1);                                    // 1 = right, -1 = left
+    const cometScaleX   = useMotionValue(1);                                        // 1 = right, -1 = left
     const springScaleX  = useSpring(cometScaleX, { stiffness: 220, damping: 26 });
 
     useEffect(() => {
@@ -36,6 +36,7 @@ const Navbar = () => {
         { href: "/",           label: "Home"       },
         { href: "/projects",   label: "Projects"   },
         { href: "/events",     label: "Events"     },
+        { href: "/certificates", label: "Certificates" },
         { href: "/gallery",    label: "Gallery"    },
         { href: "/teams",      label: "Team"       },
         { href: "/newsletter", label: "Newsletter" },
