@@ -1,26 +1,35 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, memo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import events from "@/data/EventsData";
+import { supabase } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 /* ──────────────────────────────────────────────
    Helpers
 ────────────────────────────────────────────── */
-const YEARS = (() => {
-  const ySet = new Set();
-  events.forEach(e => {
-    const m = e.date.match(/20\d{2}/);
-    if (m) ySet.add(m[0]);
-  });
-  return ['All', ...Array.from(ySet).sort((a, b) => b - a)];
-})();
+const parseEventDate = (dateStr) => {
+  if (!dateStr) return 0;
+  const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+  const yearMatch = dateStr.match(/\b(20\d{2})\b/);
+  const year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
+  const monthMatch = dateStr.match(/[a-zA-Z]+/);
+  let monthIndex = 0;
+  if (monthMatch) {
+    const m = monthMatch[0].toLowerCase().substring(0, 3);
+    monthIndex = months.indexOf(m);
+    if (monthIndex === -1) monthIndex = 0;
+  }
+  const dayMatch = dateStr.match(/\b(\d{1,2})\b/);
+  const day = dayMatch ? parseInt(dayMatch[1]) : 1;
+  return new Date(year, monthIndex, day).getTime();
+};
 
 /* ──────────────────────────────────────────────
    Event Card
 ────────────────────────────────────────────── */
-const EventCard = ({ event, index, onSelect }) => (
+const EventCard = memo(({ event, index, onSelect }) => (
   <motion.article
     className="group relative cursor-pointer"
     initial={{ opacity: 0, y: 30 }}
@@ -30,27 +39,38 @@ const EventCard = ({ event, index, onSelect }) => (
     onClick={() => onSelect(event)}
     layout
   >
-    <div className="relative h-[340px] sm:h-[420px] md:h-[480px] rounded-[1.25rem] sm:rounded-[1.5rem] overflow-hidden border border-white/[0.06] bg-gray-950">
-      {/* Image */}
-      <img
-        src={event.image}
-        alt={event.title}
-        loading="lazy"
-        decoding="async"
-        className="absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110"
-      />
+    <div className="relative h-[340px] sm:h-[420px] md:h-[480px] rounded-[1.25rem] sm:rounded-[1.5rem] overflow-hidden border border-white/[0.06] bg-gray-950 flex items-center justify-center">
+      {/* Image with object-contain so posters aren't cropped */}
+      {event.image ? (
+        <img
+          src={event.image}
+          alt={event.title}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-contain transition-all duration-700 ease-out group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-900/20 to-black transition-all duration-700 ease-out group-hover:scale-105" />
+      )}
 
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-pink-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-pink-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      {/* Date pill — top right */}
-      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 max-w-[calc(100%-1.5rem)] px-3 py-1 text-[10px] font-bold tracking-[0.12em] sm:tracking-[0.15em] uppercase text-white/70 bg-black/50 backdrop-blur-md border border-white/10 rounded-full">
-        {event.date}
+      {/* Badges — top right */}
+      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex gap-2 pointer-events-none z-10">
+        {event.type === 'competition' && (
+          <span className="px-3 py-1 text-[10px] font-bold tracking-[0.15em] uppercase text-blue-300 bg-blue-900/50 backdrop-blur-md border border-blue-500/30 rounded-full">
+            Competition
+          </span>
+        )}
+        <div className="px-3 py-1 text-[10px] font-bold tracking-[0.12em] sm:tracking-[0.15em] uppercase text-white/70 bg-black/50 backdrop-blur-md border border-white/10 rounded-full">
+          {event.date}
+        </div>
       </div>
 
       {/* Bottom content */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7">
+      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7 z-10 pointer-events-none">
         <h3 className="text-xl sm:text-2xl md:text-3xl font-heading text-slate-300 leading-tight mb-2 drop-shadow-[0_0_10px_rgba(56,189,248,0.12)] uppercase tracking-wider">
           {event.title}
         </h3>
@@ -79,13 +99,15 @@ const EventCard = ({ event, index, onSelect }) => (
       />
     </div>
   </motion.article>
-);
+));
+EventCard.displayName = 'EventCard';
 
 /* ──────────────────────────────────────────────
    Detail Modal
 ────────────────────────────────────────────── */
 const EventModal = ({ event, onClose }) => {
-  // Close on Escape
+  const router = useRouter();
+
   useEffect(() => {
     const handler = (e) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', handler);
@@ -100,10 +122,8 @@ const EventModal = ({ event, onClose }) => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
     >
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-lg" onClick={onClose} />
 
-      {/* Modal panel — horizontal on md+ */}
       <motion.div
         className="relative w-full max-w-5xl mx-2 sm:mx-4 max-h-[92vh] rounded-t-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-[#0c0812] border border-white/[0.08] shadow-[0_0_80px_rgba(168,85,247,0.12)] flex flex-col md:flex-row"
         initial={{ y: 60, opacity: 0, scale: 0.97 }}
@@ -111,7 +131,6 @@ const EventModal = ({ event, onClose }) => {
         exit={{ y: 60, opacity: 0, scale: 0.97 }}
         transition={{ type: "spring", damping: 35, stiffness: 350 }}
       >
-        {/* Close */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200 group"
@@ -122,21 +141,26 @@ const EventModal = ({ event, onClose }) => {
           </svg>
         </button>
 
-        {/* Image — left side on desktop, top on mobile */}
-        <div className="relative w-full md:w-[45%] h-44 sm:h-64 md:h-auto md:min-h-[450px] flex-shrink-0 overflow-hidden">
-          <img
-            src={event.image}
-            alt={event.title}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0c0812] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:via-transparent md:to-[#0c0812]" />
+        <div className="relative w-full md:w-[45%] h-56 sm:h-72 md:h-auto md:min-h-[450px] flex-shrink-0 overflow-hidden bg-black flex items-center justify-center">
+          {event.image ? (
+            <img src={event.image} alt={event.title} className="w-full h-full object-contain" />
+          ) : (
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-900/20 to-black" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0c0812] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:via-transparent md:to-[#0c0812] pointer-events-none" />
         </div>
 
-        {/* Content — right side */}
         <div className="w-full md:w-[55%] p-5 sm:p-9 md:p-10 flex flex-col overflow-y-auto max-h-[68vh] md:max-h-[92vh] events-modal-scroll">
           <div className="flex-1">
-            <div className="inline-block mb-5 px-4 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full">
-              <span className="text-purple-300 text-sm font-medium">{event.date}</span>
+            <div className="flex gap-2 mb-5">
+              <div className="inline-block px-4 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full">
+                <span className="text-purple-300 text-sm font-medium">{event.date}</span>
+              </div>
+              {event.type === 'competition' && (
+                <div className="inline-block px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full">
+                  <span className="text-blue-300 text-sm font-medium">Competition</span>
+                </div>
+              )}
             </div>
 
             <h2 className="text-2xl sm:text-4xl font-heading text-slate-300 tracking-wider uppercase drop-shadow-[0_0_12px_rgba(56,189,248,0.15)] mb-4 sm:mb-6 leading-tight">
@@ -148,12 +172,24 @@ const EventModal = ({ event, onClose }) => {
             </p>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-white/[0.06]">
+          <div className="mt-8 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row gap-3">
+            {event.registration_live ? (
+              <button
+                onClick={() => router.push(`/events/form?eventId=${event.id}`)}
+                className="w-full sm:w-2/3 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-[#2D0FF7] via-[#A10FF2] to-[#F20059] hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+              >
+                Register Now
+              </button>
+            ) : (
+              <button disabled className="w-full sm:w-2/3 py-4 rounded-xl font-bold text-gray-500 bg-white/5 border border-white/10 cursor-not-allowed">
+                Registrations Closed
+              </button>
+            )}
             <button
               onClick={onClose}
-              className="w-full py-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white font-semibold transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]"
+              className="w-full sm:w-1/3 py-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white font-semibold transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] cursor-pointer"
             >
-              Back to Events
+              Back
             </button>
           </div>
         </div>
@@ -166,12 +202,35 @@ const EventModal = ({ event, onClose }) => {
    Main Page
 ────────────────────────────────────────────── */
 export default function EventsPage() {
+  const [eventsList, setEventsList] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [yearFilter, setYearFilter] = useState('All');
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    fetchEvents();
+  }, []);
 
-  // Lock scroll on modal
+  const fetchEvents = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .neq('is_visible', false);
+
+    if (!error && data) {
+      const sortedEvents = data.sort((a, b) => {
+        const timeA = parseEventDate(a.date);
+        const timeB = parseEventDate(b.date);
+        if (timeB === timeA) return a.id > b.id ? 1 : -1;
+        return timeB - timeA;
+      });
+      setEventsList(sortedEvents);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (selectedEvent) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = '';
@@ -180,10 +239,27 @@ export default function EventsPage() {
 
   const closeModal = useCallback(() => setSelectedEvent(null), []);
 
+  const years = useMemo(() => {
+    const ySet = new Set();
+    eventsList.forEach(e => {
+      const m = e.date.match(/20\d{2}/);
+      if (m) ySet.add(m[0]);
+    });
+    return ['All', ...Array.from(ySet).sort((a, b) => b - a)];
+  }, [eventsList]);
+
   const filtered = useMemo(() => {
-    if (yearFilter === 'All') return events;
-    return events.filter(e => e.date.includes(yearFilter));
-  }, [yearFilter]);
+    if (yearFilter === 'All') return eventsList;
+    return eventsList.filter(e => e.date.includes(yearFilter));
+  }, [yearFilter, eventsList]);
+
+  const bannerEvent = useMemo(() => {
+    return filtered.find(e => e.is_banner) || filtered[0];
+  }, [filtered]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-white">Loading events...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-transparent text-white overflow-x-hidden">
@@ -214,7 +290,7 @@ export default function EventsPage() {
               </h1>
 
               <p className="events-hero-description">
-                Every workshop, hackathon, and meetup that shaped our <span className="text-purple-400 font-medium">2023–2025</span> journey.
+                Every workshop, hackathon, and meetup that shaped our <span className="text-purple-400 font-medium">2023–2026</span> journey.
               </p>
             </div>
           </motion.div>
@@ -229,7 +305,7 @@ export default function EventsPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          {YEARS.map((yr) => (
+          {years.map((yr) => (
             <button
               key={yr}
               onClick={() => setYearFilter(yr)}
@@ -246,36 +322,45 @@ export default function EventsPage() {
         </motion.div>
       </div>
 
-      {/* ─── Featured Event (first one) ─── */}
-      {filtered.length > 0 && (
+      {/* ─── Featured Banner Event ─── */}
+      {bannerEvent && (
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 mb-8 sm:mb-12">
           <motion.div
-            className="group relative h-[360px] sm:h-[500px] md:h-[550px] rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden border border-white/[0.06] cursor-pointer"
+            className="group relative h-[360px] sm:h-[500px] md:h-[550px] rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden border border-white/[0.06] cursor-pointer bg-gray-950 flex items-center justify-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            onClick={() => setSelectedEvent(filtered[0])}
+            onClick={() => setSelectedEvent(bannerEvent)}
           >
-            <img
-              src={filtered[0].image}
-              alt={filtered[0].title}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent" />
+            {bannerEvent.image ? (
+              <img
+                src={bannerEvent.image}
+                alt={bannerEvent.title}
+                className="absolute inset-0 w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+              />
+            ) : (
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-900/20 to-black transition-transform duration-700 group-hover:scale-105" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent pointer-events-none" />
 
-            <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8 md:p-12 max-w-2xl">
+            <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8 md:p-12 max-w-2xl pointer-events-none">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                 <span className="px-3 py-1 text-[10px] font-bold tracking-[0.15em] uppercase text-purple-300 bg-white/10 backdrop-blur-md border border-white/10 rounded-full">
                   Featured
                 </span>
-                <span className="text-xs sm:text-sm text-gray-400">{filtered[0].date}</span>
+                {bannerEvent.type === 'competition' && (
+                  <span className="px-3 py-1 text-[10px] font-bold tracking-[0.15em] uppercase text-blue-300 bg-white/10 backdrop-blur-md border border-white/10 rounded-full">
+                    Competition
+                  </span>
+                )}
+                <span className="text-xs sm:text-sm text-gray-400">{bannerEvent.date}</span>
               </div>
               <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-3 sm:mb-4">
-                {filtered[0].title}
+                {bannerEvent.title}
               </h2>
               <p className="text-gray-300 text-sm sm:text-lg font-light leading-relaxed line-clamp-3">
-                {filtered[0].description}
+                {bannerEvent.description}
               </p>
             </div>
 
@@ -296,7 +381,7 @@ export default function EventsPage() {
       {/* ─── Events Grid ─── */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pb-20 sm:pb-28">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filtered.slice(1).map((event, index) => (
+          {filtered.map((event, index) => (
             <EventCard
               key={event.id}
               event={event}

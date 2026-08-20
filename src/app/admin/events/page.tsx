@@ -29,6 +29,7 @@ interface Event {
   winners: Winner[];
   registration_live: boolean;
   whatsapp_group_link: string;
+  slug?: string;
 }
 
 type Toast = { message: string; type: "success" | "error" };
@@ -108,11 +109,8 @@ export default function AdminEventsControl() {
 
     const { data: admin } = await supabase.from('admins').select('*').eq('email', user.email);
     
-    // STRICT SELECTIVE ACCESS CHECK:
-    // Make sure they exist AND their permissions array includes 'events'
     const currentAdmin = admin?.[0];
     if (!currentAdmin || !currentAdmin.permissions?.includes('events')) { 
-      // Kick them out if they don't have events access
       router.push('/admin'); 
       return; 
     }
@@ -144,24 +142,99 @@ export default function AdminEventsControl() {
 
   const fetchRegistrations = async (eventId: string) => {
     setLoadingRegs(true);
-    const { data } = await supabase.from('event_registrations').select('*').eq('event_id', eventId);
-    setRegistrations(data || []);
+    setRegistrations([]);
+
+    const targetEvent = events.find(e => e.id === eventId);
+    const isHelloWorld = targetEvent?.title?.toLowerCase().includes('hello world');
+
+    let query = supabase
+      .from('event_registrations')
+      .select('*');
+
+    if (isHelloWorld) {
+      query = query.or(`event_id.eq.${eventId},event_slug.ilike.%hello%`);
+    } else {
+      query = query.or(`event_id.eq.${eventId},event_slug.eq.ml_workshop_26,event_slug.eq.ml_workshop`);
+    }
+
+    let { data, error } = await query.order('created_at', { ascending: true });
+
+    // Fallback: If querying Hello World and event_registrations has no rows, check legacy table
+    if (isHelloWorld && (!data || data.length === 0)) {
+      const { data: legacyData } = await supabase
+        .from('hello_world_26')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (legacyData && legacyData.length > 0) {
+        data = legacyData.map(d => ({
+          ...d,
+          randomize_id: d.registration_id,
+          event_slug: 'hello_world_26'
+        }));
+      }
+    }
+
+    if (error) {
+      showToast(error.message, "error");
+      setRegistrations([]);
+    } else {
+      setRegistrations(data || []);
+      if (!data || data.length === 0) {
+        showToast("0 registrations found for this event", "error");
+      } else {
+        showToast(`Loaded ${data.length} registrations`, "success");
+      }
+    }
     setLoadingRegs(false);
   };
 
   const exportCSV = () => {
-    const header = ["Reg ID", "Name", "Personal Email", "Outlook Email", "Reg Number", "WhatsApp", "Joined", "Date"];
-    const csv = registrations.map(r => [
-      r.registration_id, r.full_name, r.personal_email, r.outlook_email, 
-      r.registration_number, r.whatsapp_number, r.joined_whatsapp ? 'Yes' : 'No', 
-      new Date(r.created_at).toLocaleString()
-    ].join(','));
-    const blob = new Blob([header.join(',') + '\n' + csv.join('\n')], { type: 'text/csv' });
+    if (registrations.length === 0) {
+      showToast("No registrations available to export", "error");
+      return;
+    }
+
+    const headers = [
+      "Randomize ID",
+      "Full Name",
+      "Personal Email",
+      "Outlook Email",
+      "Registration Number",
+      "WhatsApp Number",
+      "Course",
+      "Graduation Year",
+      "Joined WhatsApp",
+      "Registration Date"
+    ];
+
+    const rows = registrations.map(r => [
+      `"${r.randomize_id || r.registration_id || ''}"`,
+      `"${(r.full_name || r.name || '').replace(/"/g, '""')}"`,
+      `"${r.personal_email || r.email || ''}"`,
+      `"${r.outlook_email || ''}"`,
+      `"=""${r.registration_number || ''}"""`,
+      `"=""${r.whatsapp_number || r.phone_number || ''}"""`,
+      `"${r.course_name || r.course || ''}"`,
+      `"${r.graduation_year ? (r.graduation_year > 100 ? r.graduation_year : `20${r.graduation_year}`) : (r.pass_year || '')}"`,
+      `"${r.joined_whatsapp ? 'Yes' : 'No'}"`,
+      `"${new Date(r.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }).replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'registrations.csv';
+    a.download = `registrations_${Date.now()}.csv`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleImageUpload = async (file: File) => {
@@ -335,11 +408,11 @@ export default function AdminEventsControl() {
           <div className="flex items-center gap-3">
             {event.image ? (
               <div 
-                className="relative w-16 h-10 sm:w-20 sm:h-12 rounded bg-black border border-white/10 shrink-0 overflow-hidden cursor-pointer group"
+                className="relative w-16 h-10 sm:w-20 sm:h-12 rounded bg-black border border-white/10 shrink-0 overflow-hidden cursor-pointer group flex items-center justify-center"
                 onClick={() => setPreviewImage(event.image)}
                 title="Click to preview image"
               >
-                <img src={event.image} alt={event.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <img src={event.image} alt={event.title} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                   <Eye className="w-4 h-4 text-white" />
                 </div>
@@ -396,8 +469,9 @@ export default function AdminEventsControl() {
             )}
 
             <button onClick={() => {
-                setExpandedId(isExpanded ? null : event.id);
-                if (!isExpanded) { setRegistrations([]); }
+                const nextState = isExpanded ? null : event.id;
+                setExpandedId(nextState);
+                if (nextState) { fetchRegistrations(event.id); }
               }} className="flex items-center justify-center w-7 h-7 border border-white/10 rounded-lg text-gray-300 hover:bg-white/5 transition-all ml-1">
               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
@@ -526,8 +600,10 @@ export default function AdminEventsControl() {
                   <div className="flex flex-wrap items-center gap-3">
                     <button 
                       onClick={() => fetchRegistrations(event.id)} 
-                      className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors"
+                      disabled={loadingRegs}
+                      className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors disabled:opacity-50 flex items-center gap-2"
                     >
+                      {loadingRegs ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
                       Load Registrations
                     </button>
                     {registrations.length > 0 && (
