@@ -214,7 +214,7 @@ export default function MembershipForm() {
 
   const planAmount = formData.registrationType === 'Renewal' ? 100 : 400;
 
-  // 1. Generate preview blob URL
+  // 1. Generate preview blob URL[cite: 1, 2]
   useEffect(() => {
     if (!formData.paymentProof) {
       setImagePreviewUrl(null);
@@ -230,7 +230,7 @@ export default function MembershipForm() {
     }
   }, [formData.paymentProof]);
 
-  // 2. Load cached form state
+  // 2. Load cached form state[cite: 1, 2]
   useEffect(() => {
     try {
       const saved = localStorage.getItem('membership_form_data');
@@ -255,7 +255,7 @@ export default function MembershipForm() {
     }
   }, []);
 
-  // 3. Persist form data
+  // 3. Persist form data[cite: 1, 2]
   useEffect(() => {
     try {
       const { paymentProof, ...serializable } = formData;
@@ -265,7 +265,7 @@ export default function MembershipForm() {
     }
   }, [formData]);
 
-  // 4. Click & Touch outside handler
+  // 4. Click & Touch outside handler[cite: 1, 2]
   useEffect(() => {
     function handleClickOutside(event) {
       if (pitchedByRef.current && !pitchedByRef.current.contains(event.target)) {
@@ -281,57 +281,73 @@ export default function MembershipForm() {
     };
   }, []);
 
-  // 5. Auth verification & autofill
+  // 5. Blazing Fast Profile & Directory Hydration (No Mobile Hanging)[cite: 1, 2]
   useEffect(() => {
     let isMounted = true;
+    let checkedUserId = null;
 
-    const initAuthAndDirectory = async () => {
-      try {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
+    // Hard fallback safety: Never show loader for more than 1.5s on slow mobile networks
+    const hardTimeout = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 1500);
 
-        if (!currentUser) {
-          if (isMounted) setLoading(false);
-          return;
+    const loadProfile = async (sessionUser) => {
+      if (!sessionUser || !isMounted) {
+        if (isMounted) {
+          setUser(null);
+          setLoading(false);
         }
+        return;
+      }
 
-        if (isMounted) setUser(currentUser);
-        const cleanEmail = currentUser.email?.toLowerCase().trim();
+      // Prevent duplicate fetches if already run for this user
+      if (checkedUserId === sessionUser.id) return;
+      checkedUserId = sessionUser.id;
 
-        // Check if user already submitted application
-        const { data: existingMember } = await supabase
-          .from('members_26')
-          .select('randomize_id, full_name, status, registration_type')
-          .or(`user_id.eq.${currentUser.id},personal_email.ilike.${cleanEmail},outlook_email.ilike.${cleanEmail}`)
-          .maybeSingle();
+      setUser(sessionUser);
+      const cleanEmail = sessionUser.email?.toLowerCase().trim();
 
-        if (existingMember && isMounted) {
+      try {
+        // Parallel fetch with direct equality checks (instant index hit)[cite: 1, 2]
+        const [memberRes, dirRes] = await Promise.all([
+          supabase
+            .from('members_26')
+            .select('randomize_id, full_name, status, registration_type')
+            .eq('user_id', sessionUser.id)
+            .maybeSingle(),
+          supabase
+            .from('randomize_directory')
+            .select('*')
+            .eq('email', cleanEmail)
+            .maybeSingle()
+        ]);
+
+        if (!isMounted) return;
+
+        // 1. If already registered for 2026-27[cite: 1, 2]
+        if (memberRes.data) {
           setSuccessData({
-            randomize_id: existingMember.randomize_id,
-            full_name: existingMember.full_name,
-            status: existingMember.status || 'pending_verification',
+            randomize_id: memberRes.data.randomize_id,
+            full_name: memberRes.data.full_name,
+            status: memberRes.data.status || 'pending_verification',
             alreadyRegistered: true
           });
           setLoading(false);
           return;
         }
 
-        // Fetch directory entry for autofill
-        let { data: dirProfile } = await supabase
-          .from('randomize_directory')
-          .select('*')
-          .or(`email.ilike.${cleanEmail},outlook_email.ilike.${cleanEmail}`)
-          .maybeSingle();
-
-        if (dirProfile && isMounted) {
+        // 2. Autofill from Directory if existing[cite: 1, 2]
+        const dirProfile = dirRes.data;
+        if (dirProfile) {
           const matchedCourse = COURSES.find(c => 
             dirProfile.course && String(dirProfile.course).toLowerCase().includes(c.name.slice(0, 10).toLowerCase())
           );
 
           const is26Batch = String(dirProfile.registration_number || '').trim().startsWith('26');
 
-          setFormData((prev) => ({
+          setFormData(prev => ({
             ...prev,
-            name: prev.name || dirProfile.name || currentUser.user_metadata?.full_name || '',
+            name: prev.name || dirProfile.name || sessionUser.user_metadata?.full_name || '',
             outlookEmail: prev.outlookEmail || dirProfile.outlook_email || '',
             regNo: prev.regNo || dirProfile.registration_number || '',
             phone: prev.phone || dirProfile.phone_number || '',
@@ -343,21 +359,48 @@ export default function MembershipForm() {
               ? prev.courseDuration
               : (matchedCourse ? matchedCourse.duration : 4)
           }));
-        } else if (currentUser.user_metadata?.full_name && isMounted) {
-          setFormData((prev) => ({
+        } else if (sessionUser.user_metadata?.full_name) {
+          // Fast path for new users
+          setFormData(prev => ({
             ...prev,
-            name: prev.name || currentUser.user_metadata.full_name
+            name: prev.name || sessionUser.user_metadata.full_name
           }));
         }
       } catch (err) {
-        console.error("Directory lookup error:", err);
+        console.warn("Profile fast-load note:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
-    initAuthAndDirectory();
-    return () => { isMounted = false; };
+    // 1. Instant check via local cached session[cite: 1, 2]
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadProfile(session.user);
+      } else {
+        if (isMounted) setLoading(false);
+      }
+    }).catch(() => {
+      if (isMounted) setLoading(false);
+    });
+
+    // 2. Listen for auth state changes (OAuth redirect completion)[cite: 1, 2]
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        loadProfile(session.user);
+      } else {
+        if (isMounted) {
+          setUser(null);
+          setLoading(false);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      clearTimeout(hardTimeout);
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const handleRegNoChange = (val) => {
@@ -371,10 +414,14 @@ export default function MembershipForm() {
   };
 
   const handleGoogleLogin = async () => {
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/membership` 
+      : 'https://randomise2-0-tau.vercel.app/membership';
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { 
-        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/membership` : undefined 
+        redirectTo: redirectUrl
       },
     });
   };
@@ -528,6 +575,7 @@ export default function MembershipForm() {
     }
   };
 
+  // Filter ONLY by active user typing query
   const filteredPitchedByGroups = PITCHED_BY_OPTIONS.map((group) => ({
     ...group,
     members: group.members.filter((m) => 
