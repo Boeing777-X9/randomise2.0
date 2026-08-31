@@ -1,10 +1,23 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
-export default function GlassCard({ children, className = '', style = {} }) {
+export default function GlassCard({ children, className = '', innerClassName = '', style = {} }) {
   const cardRef = useRef(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    const checkTouch = () => {
+      setIsTouchDevice(
+        'ontouchstart' in window ||
+        navigator.maxTouchPoints > 0 ||
+        window.matchMedia('(pointer: coarse)').matches
+      );
+    };
+    checkTouch();
+  }, []);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -14,7 +27,7 @@ export default function GlassCard({ children, className = '', style = {} }) {
   const rotateYSpring = useSpring(0, { stiffness: 150, damping: 25 });
 
   const handleCardMouseMove = (e) => {
-    if (!cardRef.current) return;
+    if (isTouchDevice || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
@@ -28,6 +41,7 @@ export default function GlassCard({ children, className = '', style = {} }) {
   };
 
   const handleCardMouseLeave = () => {
+    if (isTouchDevice) return;
     rotateXSpring.set(0);
     rotateYSpring.set(0);
   };
@@ -44,7 +58,7 @@ export default function GlassCard({ children, className = '', style = {} }) {
 
   return (
     <div 
-      className={`relative group text-left ${className}`} 
+      className={cn("relative group text-left", className)} 
       style={style}
     >
       {/* Ambient Backlight Glow Effects */}
@@ -55,21 +69,30 @@ export default function GlassCard({ children, className = '', style = {} }) {
         ref={cardRef}
         onMouseMove={handleCardMouseMove}
         onMouseLeave={handleCardMouseLeave}
-        style={{ rotateX: rotateXSpring, rotateY: rotateYSpring, transformStyle: "preserve-3d" }}
-        className="relative min-h-full rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.05] to-white/[0.01] backdrop-blur-xl p-5 sm:p-8 text-white shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer flex flex-col"
+        style={{ 
+          rotateX: isTouchDevice ? 0 : rotateXSpring, 
+          rotateY: isTouchDevice ? 0 : rotateYSpring, 
+          transformStyle: "preserve-3d" 
+        }}
+        className={cn(
+          "relative min-h-full rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.05] to-white/[0.01] backdrop-blur-xl p-5 sm:p-8 text-white shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer flex flex-col",
+          innerClassName
+        )}
       >
         {/* Liquid Sheen Overlay */}
-        <motion.div 
-          className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-0 group-hover:opacity-100 mix-blend-screen" 
-          style={{ background: dynamicGlow }} 
-        />
+        {!isTouchDevice && (
+          <motion.div 
+            className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-0 group-hover:opacity-100 mix-blend-screen" 
+            style={{ background: dynamicGlow }} 
+          />
+        )}
         
         {/* Glass Edge Highlights */}
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-pink-500/40" />
         <div className="absolute bottom-0 right-0 w-[1px] h-full bg-gradient-to-b from-transparent via-pink-500/20 to-transparent" />
 
         {/* 3D Content Layer Projection */}
-        <div style={{ transform: "translateZ(40px)" }} className="relative z-10 flex flex-col w-full">
+        <div style={{ transform: isTouchDevice ? "none" : "translateZ(40px)" }} className="relative z-10 flex flex-col w-full">
           {children}
         </div>
       </motion.div>

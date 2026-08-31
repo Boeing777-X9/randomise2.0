@@ -6,7 +6,7 @@ import GlassCard from '@/components/membership-card';
 import { 
   UploadCloud, CheckCircle2, AlertTriangle, 
   Sparkles, RefreshCw, ArrowLeft, ExternalLink, CreditCard,
-  ChevronDown, Check
+  ChevronDown, Check, FileText, X
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -184,7 +184,8 @@ export default function MembershipForm() {
     accommodation: 'GHS',
     referral: 'NONE',
     paymentReferenceId: '',
-    paymentProof: null
+    paymentProof: null,
+    pitchedBy: ''
   });
 
   const [referralSearch, setReferralSearch] = useState('NONE');
@@ -197,16 +198,83 @@ export default function MembershipForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [successData, setSuccessData] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 
+  // 1. Image preview URL generator
+  useEffect(() => {
+    if (!formData.paymentProof) {
+      setImagePreviewUrl(null);
+      return;
+    }
+
+    if (formData.paymentProof.type?.startsWith('image/')) {
+      const url = URL.createObjectURL(formData.paymentProof);
+      setImagePreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setImagePreviewUrl(null);
+    }
+  }, [formData.paymentProof]);
+
+  // 2. Load form data from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('membership_form_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setFormData(prev => ({
+          ...prev,
+          name: parsed.name || prev.name,
+          regNo: parsed.regNo || prev.regNo,
+          outlookEmail: parsed.outlookEmail || prev.outlookEmail,
+          phone: parsed.phone || prev.phone,
+          academicDetails: parsed.academicDetails || prev.academicDetails,
+          courseDuration: parsed.courseDuration || prev.courseDuration,
+          accommodation: parsed.accommodation || prev.accommodation,
+          referral: parsed.referral || prev.referral,
+          paymentReferenceId: parsed.paymentReferenceId || prev.paymentReferenceId,
+          pitchedBy: parsed.pitchedBy || prev.pitchedBy
+        }));
+        if (parsed.referral) {
+          setReferralSearch(parsed.referral);
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load saved form data", e);
+    }
+  }, []);
+
+  // 3. Save form data to localStorage
+  useEffect(() => {
+    try {
+      const { paymentProof, ...serializable } = formData;
+      localStorage.setItem('membership_form_data', JSON.stringify(serializable));
+    } catch (e) {
+      console.warn("Failed to save form data", e);
+    }
+  }, [formData]);
+
+  // 4. Click outside logic supporting touchstart
   useEffect(() => {
     function handleClickOutside(event) {
       if (referralRef.current && !referralRef.current.contains(event.target)) {
         setReferralDropdownOpen(false);
+        // Reset search input if empty
+        setReferralSearch(prev => {
+          if (prev.trim() === '') {
+            return formData.referral || 'NONE';
+          }
+          return prev;
+        });
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [formData.referral]);
 
   useEffect(() => {
     let isMounted = true;
@@ -223,7 +291,7 @@ export default function MembershipForm() {
         if (isMounted) setUser(currentUser);
         const cleanEmail = currentUser.email?.toLowerCase().trim();
 
-        // 1. Check if user is already registered in members_26
+        // Check if user is already registered in members_26
         const { data: existingMember } = await supabase
           .from('members_26')
           .select('*')
@@ -240,7 +308,7 @@ export default function MembershipForm() {
           return;
         }
 
-        // 2. Auto-populate from Directory
+        // Auto-populate from Directory
         let { data: dirProfile } = await supabase
           .from('randomize_directory')
           .select('*')
@@ -272,17 +340,21 @@ export default function MembershipForm() {
 
           setFormData((prev) => ({
             ...prev,
-            name: dirProfile.name || currentUser.user_metadata?.full_name || '',
-            outlookEmail: dirProfile.outlook_email || '',
-            regNo: dirProfile.registration_number || '',
-            phone: dirProfile.phone_number || '',
-            academicDetails: matchedCourse ? matchedCourse.name : (dirProfile.course || prev.academicDetails),
-            courseDuration: matchedCourse ? matchedCourse.duration : 4
+            name: prev.name || dirProfile.name || currentUser.user_metadata?.full_name || '',
+            outlookEmail: prev.outlookEmail || dirProfile.outlook_email || '',
+            regNo: prev.regNo || dirProfile.registration_number || '',
+            phone: prev.phone || dirProfile.phone_number || '',
+            academicDetails: (prev.academicDetails && prev.academicDetails !== COURSES[0].name)
+              ? prev.academicDetails
+              : (matchedCourse ? matchedCourse.name : (dirProfile.course || prev.academicDetails)),
+            courseDuration: (prev.courseDuration && prev.courseDuration !== 4)
+              ? prev.courseDuration
+              : (matchedCourse ? matchedCourse.duration : 4)
           }));
         } else if (currentUser.user_metadata?.full_name && isMounted) {
           setFormData((prev) => ({
             ...prev,
-            name: currentUser.user_metadata.full_name
+            name: prev.name || currentUser.user_metadata.full_name
           }));
         }
       } catch (err) {
@@ -415,13 +487,19 @@ export default function MembershipForm() {
         p_payment_reference_id: formData.paymentReferenceId.trim(),
         p_payment_screenshot_url: screenshotUrl,
         p_referral: formData.referral || 'NONE',
-        p_course_duration: formData.courseDuration || 4
+        p_course_duration: formData.courseDuration || 4,
+        p_pitched_by: formData.pitchedBy.trim() || null
       });
 
       if (rpcError) throw rpcError;
 
       if (data?.success) {
         setSuccessData(data);
+        try {
+          localStorage.removeItem('membership_form_data');
+        } catch (e) {
+          console.warn("Failed to clear saved form data", e);
+        }
       } else {
         throw new Error("Unable to record membership details. Please verify your data.");
       }
@@ -475,13 +553,16 @@ export default function MembershipForm() {
 
         {/* Liquid Glass Shell */}
         <div 
-          className="relative z-10 w-full bg-[#0c0812]/85 backdrop-blur-xl border border-white/10 rounded-[24px] sm:rounded-[32px] p-[20px] sm:p-[32px] shadow-2xl text-left overflow-hidden"
+          className="relative z-10 w-full bg-[#0c0812]/85 backdrop-blur-xl border border-white/10 rounded-[20px] min-[400px]:rounded-[24px] sm:rounded-[32px] p-[14px] min-[400px]:p-[20px] sm:p-[32px] shadow-2xl text-left overflow-hidden"
           style={{ width: "100%" }}
         >
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
 
           {/* Club Header */}
-          <GlassCard className="w-full mb-[20px] relative p-[16px] sm:p-[20px]">
+          <GlassCard 
+            className="w-full mb-[20px] relative"
+            innerClassName="p-[14px] min-[400px]:p-[16px] sm:p-[20px]"
+          >
             <h1 className="text-[22px] sm:text-[24px] font-black mb-[6px] text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 text-center leading-tight">
               Join Randomize();
             </h1>
@@ -568,10 +649,10 @@ export default function MembershipForm() {
 
                 {/* Text Fields */}
                 {[
-                  { id: 'name', label: 'Full Name *', type: 'text', placeholder: 'e.g. Mohak Singhal', val: formData.name },
-                  { id: 'regNo', label: 'Registration Number *', type: 'text', placeholder: 'e.g. 24568478', val: formData.regNo },
-                  { id: 'phone', label: 'WhatsApp / Mobile Number *', type: 'tel', placeholder: 'e.g. +91 98765 43210', val: formData.phone },
-                  { id: 'outlookEmail', label: 'MUJ Outlook Email ID *', type: 'email', placeholder: 'name.24568478@muj.manipal.edu', val: formData.outlookEmail },
+                  { id: 'name', label: 'Full Name *', type: 'text', placeholder: 'e.g. Mohak Singhal', val: formData.name, autoComplete: 'name' },
+                  { id: 'regNo', label: 'Registration Number *', type: 'text', placeholder: 'e.g. 24568478', val: formData.regNo, inputMode: 'numeric', pattern: '[0-9]*' },
+                  { id: 'phone', label: 'WhatsApp / Mobile Number *', type: 'tel', placeholder: 'e.g. +91 98765 43210', val: formData.phone, inputMode: 'tel', autoComplete: 'tel' },
+                  { id: 'outlookEmail', label: 'MUJ Outlook Email ID *', type: 'email', placeholder: 'name.24568478@muj.manipal.edu', val: formData.outlookEmail, autoComplete: 'email', autoCapitalize: 'none', autoCorrect: 'off', spellCheck: 'false' },
                 ].map((field) => (
                   <div key={field.id} className="space-y-[4px]">
                     <label 
@@ -586,6 +667,12 @@ export default function MembershipForm() {
                       required 
                       placeholder={field.placeholder}
                       value={field.val}
+                      inputMode={field.inputMode}
+                      pattern={field.pattern}
+                      autoComplete={field.autoComplete}
+                      autoCapitalize={field.autoCapitalize}
+                      autoCorrect={field.autoCorrect}
+                      spellCheck={field.spellCheck}
                       className="w-full px-[14px] py-[12px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none transition-all focus:border-white/40 focus:bg-white/[0.07] placeholder:text-gray-500 min-h-[48px]"
                       onFocus={() => setActiveField(field.id)}
                       onBlur={() => setActiveField(null)}
@@ -646,7 +733,15 @@ export default function MembershipForm() {
                     <button
                       type="button"
                       aria-label="Toggle referral dropdown"
-                      onClick={() => setReferralDropdownOpen(!referralDropdownOpen)}
+                      onClick={() => {
+                        setReferralDropdownOpen(prev => {
+                          const nextState = !prev;
+                          if (nextState && referralSearch === 'NONE') {
+                            setReferralSearch('');
+                          }
+                          return nextState;
+                        });
+                      }}
                       className="absolute right-[4px] w-[36px] h-[36px] flex items-center justify-center text-gray-400 hover:text-white rounded-[8px] transition-colors"
                     >
                       <ChevronDown className={`w-[16px] h-[16px] transition-transform ${referralDropdownOpen ? 'rotate-180' : ''}`} />
@@ -655,7 +750,7 @@ export default function MembershipForm() {
 
                   {/* Dropdown Menu Container */}
                   {referralDropdownOpen && (
-                    <div className="absolute left-0 right-0 top-[102%] z-50 max-h-[280px] overflow-y-auto bg-[#0d0915] border border-white/15 rounded-[14px] shadow-2xl p-[6px] backdrop-blur-2xl">
+                    <div className="absolute left-0 right-0 top-[102%] z-50 max-h-[280px] overflow-y-auto bg-[#0d0915] border border-white/15 rounded-[14px] shadow-2xl p-[6px] backdrop-blur-2xl scrollbar-thin">
                       {filteredReferralGroups.length === 0 ? (
                         <div className="py-[12px] px-[10px] text-center text-gray-400 text-[12px] font-mono">
                           No matching member found
@@ -684,7 +779,7 @@ export default function MembershipForm() {
                                       setReferralSearch(member);
                                       setReferralDropdownOpen(false);
                                     }}
-                                    className={`w-full flex items-center justify-between px-[10px] py-[8px] rounded-[8px] text-[12px] text-left transition-colors ${
+                                    className={`w-full flex items-center justify-between px-[10px] py-[10px] rounded-[8px] text-[12px] text-left transition-colors ${
                                       isSelected 
                                         ? 'bg-white/10 text-white font-medium border border-white/10' 
                                         : 'text-gray-300 hover:bg-white/[0.06] hover:text-white'
@@ -703,10 +798,28 @@ export default function MembershipForm() {
                   )}
                 </div>
 
+                {/* Pitched By Input (Optional) */}
+                <div className="space-y-[4px]">
+                  <label 
+                    htmlFor="pitched-by-input" 
+                    className="block text-[11px] font-mono uppercase tracking-wider text-gray-400"
+                  >
+                    Pitched By (Optional)
+                  </label>
+                  <input 
+                    id="pitched-by-input"
+                    type="text"
+                    placeholder="Enter name of the member who pitched to you..."
+                    value={formData.pitchedBy || ''}
+                    className="w-full px-[14px] py-[12px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px]"
+                    onChange={(e) => setFormData({...formData, pitchedBy: e.target.value})}
+                  />
+                </div>
+
                 {/* Accommodation Selector */}
                 <fieldset className="pt-[2px]">
                   <legend className="text-[11px] font-mono uppercase tracking-wider text-gray-400 mb-[6px]">Your Accommodation *</legend>
-                  <div className="grid grid-cols-3 gap-[6px] sm:gap-[8px]">
+                  <div className="grid grid-cols-1 min-[400px]:grid-cols-3 gap-[6px] sm:gap-[8px]">
                     {['GHS', 'Day Scholar', 'PG/Flat'].map((type) => {
                       const isSelected = formData.accommodation === type;
                       return (
@@ -765,31 +878,67 @@ export default function MembershipForm() {
                   </p>
                 </div>
 
-                {/* Step 2: Screenshot Dropzone */}
-                <div className="space-y-[4px] pt-[2px]">
-                  <label htmlFor="proof-upload" className="text-[11px] font-mono uppercase tracking-wider text-gray-400 block">
+                {/* Step 2: Screenshot/PDF Upload */}
+                <div className="space-y-[6px] pt-[2px]">
+                  <label className="text-[11px] font-mono uppercase tracking-wider text-gray-400 block">
                     Step 2: Upload Payment Screenshot *
                   </label>
-                  <div className="relative flex flex-col items-center justify-center w-full border border-dashed border-white/20 hover:border-white/40 rounded-[14px] p-[16px] sm:p-[20px] bg-white/[0.02] transition-colors cursor-pointer text-center min-h-[85px]">
-                    <input 
-                      id="proof-upload"
-                      type="file" 
-                      required 
-                      accept="image/*,application/pdf"
-                      className="absolute inset-0 opacity-0 cursor-pointer z-20 w-full h-full"
-                      onChange={handleScreenshotChange}
-                    />
-                    <div className="space-y-[4px] pointer-events-none flex flex-col items-center">
-                      <UploadCloud className="w-[22px] h-[22px] text-gray-400" aria-hidden="true" />
-                      <p className="text-[12px] text-gray-300 font-medium m-0">
-                        {formData.paymentProof ? (
-                          <span className="text-white font-mono break-all">{formData.paymentProof.name}</span>
-                        ) : (
-                          <span>Tap to select receipt photo</span>
-                        )}
-                      </p>
+                  
+                  {!formData.paymentProof ? (
+                    <div className="relative flex flex-col items-center justify-center w-full border border-dashed border-white/20 hover:border-white/45 focus-within:border-white/45 rounded-[14px] p-[20px] bg-white/[0.02] transition-colors cursor-pointer text-center min-h-[96px]">
+                      <input 
+                        id="proof-upload"
+                        type="file" 
+                        required 
+                        accept="image/*,application/pdf"
+                        className="absolute inset-0 opacity-0 cursor-pointer z-20 w-full h-full"
+                        onChange={handleScreenshotChange}
+                      />
+                      <div className="space-y-[6px] pointer-events-none flex flex-col items-center">
+                        <UploadCloud className="w-[24px] h-[24px] text-gray-400" aria-hidden="true" />
+                        <p className="text-[12px] text-gray-300 font-medium m-0">
+                          Tap to select receipt photo or PDF
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="relative p-[12px] bg-white/[0.04] border border-white/15 rounded-[14px] flex flex-col gap-[10px]">
+                      {/* Image Preview / File Details */}
+                      {imagePreviewUrl ? (
+                        <div className="relative w-full max-h-[160px] rounded-[10px] overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center p-[4px]">
+                          <img 
+                            src={imagePreviewUrl} 
+                            alt="Payment receipt preview" 
+                            className="max-h-[150px] object-contain rounded-[6px]"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full py-[16px] rounded-[10px] bg-black/40 border border-white/10 flex items-center justify-center gap-[10px]">
+                          <FileText className="w-[24px] h-[24px] text-purple-400 shrink-0" />
+                          <div className="text-left overflow-hidden max-w-[70%]">
+                            <p className="text-[12px] text-white font-mono truncate m-0">{formData.paymentProof.name}</p>
+                            <p className="text-[10px] text-gray-400 font-mono m-0">
+                              {(formData.paymentProof.size / 1024).toFixed(1)} KB
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Info & Remove Button Bar */}
+                      <div className="flex items-center justify-between pt-[4px] border-t border-white/[0.08]">
+                        <span className="text-[11px] font-mono text-gray-400 truncate max-w-[70%]">
+                          {formData.paymentProof.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, paymentProof: null }))}
+                          className="flex items-center gap-[4px] px-[8px] py-[4px] rounded-[6px] bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 text-[11px] font-mono border border-red-500/20 transition-colors min-h-[28px] cursor-pointer"
+                        >
+                          <X className="w-[12px] h-[12px]" /> Remove
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Step 3: Reference ID / UTR Input */}
@@ -825,9 +974,16 @@ export default function MembershipForm() {
                   <button 
                     type="submit"
                     disabled={submitting || isScanning}
-                    className="w-full py-[14px] rounded-[12px] bg-white/[0.08] hover:bg-white/[0.14] border border-white/20 text-white font-medium text-[13px] sm:text-[14px] tracking-wide transition-all active:scale-[0.99] disabled:opacity-50 min-h-[48px] cursor-pointer"
+                    className="w-full py-[14px] rounded-[12px] bg-gradient-to-r from-sky-500 via-blue-600 to-purple-600 hover:from-sky-400 hover:via-blue-500 hover:to-purple-500 active:scale-[0.99] disabled:opacity-50 min-h-[48px] cursor-pointer text-white font-semibold text-[14px] tracking-wide transition-all shadow-md shadow-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 border-0 flex items-center justify-center gap-[8px]"
                   >
-                    {submitting ? 'Submitting Application...' : 'Submit Form'}
+                    {submitting ? (
+                      <>
+                        <RefreshCw className="w-[16px] h-[16px] animate-spin shrink-0" />
+                        <span>Submitting Application...</span>
+                      </>
+                    ) : (
+                      <span>Submit Form</span>
+                    )}
                   </button>
                 </div>
               </form>

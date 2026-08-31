@@ -25,6 +25,7 @@ interface MembershipApp {
   payment_screenshot_url: string;
   payment_status: 'pending_verification' | 'approved' | 'rejected';
   created_at: string;
+  pitched_by?: string;
 }
 
 export default function AdminMembershipsPage() {
@@ -267,6 +268,7 @@ export default function AdminMembershipsPage() {
                 <tr>
                   <th className="py-3.5 px-4 font-bold">Randomize ID</th>
                   <th className="py-3.5 px-4 font-bold">Member Details</th>
+                  <th className="py-3.5 px-4 font-bold">Pitched By</th>
                   <th className="py-3.5 px-4 font-bold">Plan & Amount</th>
                   <th className="py-3.5 px-4 font-bold">Payment Ref / UTR</th>
                   <th className="py-3.5 px-4 font-bold text-center">Receipt</th>
@@ -277,14 +279,14 @@ export default function AdminMembershipsPage() {
               <tbody className="divide-y divide-white/5">
                 {loading && apps.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-zinc-500">
+                    <td colSpan={8} className="py-12 text-center text-zinc-500">
                       <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-purple-400" />
                       Loading submissions...
                     </td>
                   </tr>
                 ) : filteredApps.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-zinc-500">
+                    <td colSpan={8} className="py-12 text-center text-zinc-500">
                       No applications match the current filter.
                     </td>
                   </tr>
@@ -297,6 +299,9 @@ export default function AdminMembershipsPage() {
                       <td className="py-3 px-4">
                         <div className="font-semibold text-white">{a.name}</div>
                         <div className="text-[11px] text-zinc-400 font-mono">Reg: {a.registration_number} | {a.outlook_email}</div>
+                      </td>
+                      <td className="py-3 px-4 font-mono font-medium text-pink-300">
+                        {a.pitched_by || <span className="text-zinc-500">-</span>}
                       </td>
                       <td className="py-3 px-4">
                         <span className="font-semibold text-zinc-200">{a.registration_type}</span>
