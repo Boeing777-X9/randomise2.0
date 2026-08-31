@@ -218,7 +218,7 @@ export default function MembershipForm() {
 
   const planAmount = formData.registrationType === 'Renewal' ? 100 : 400;
 
-  // 1. Preview blob generation for receipt[cite: 1]
+  // 1. Generate preview blob URL
   useEffect(() => {
     if (!formData.paymentProof) {
       setImagePreviewUrl(null);
@@ -234,7 +234,7 @@ export default function MembershipForm() {
     }
   }, [formData.paymentProof]);
 
-  // 2. Load cached form data from localStorage[cite: 1]
+  // 2. Load cached form state
   useEffect(() => {
     try {
       const saved = localStorage.getItem('membership_form_data');
@@ -262,7 +262,7 @@ export default function MembershipForm() {
     }
   }, []);
 
-  // 3. Persist form updates[cite: 1]
+  // 3. Persist form data
   useEffect(() => {
     try {
       const { paymentProof, ...serializable } = formData;
@@ -272,7 +272,7 @@ export default function MembershipForm() {
     }
   }, [formData]);
 
-  // 4. Click & Touch outside handler for mobile dropdowns[cite: 1]
+  // 4. Click & Touch outside handler
   useEffect(() => {
     function handleClickOutside(event) {
       if (pitchedByRef.current && !pitchedByRef.current.contains(event.target)) {
@@ -288,7 +288,7 @@ export default function MembershipForm() {
     };
   }, [formData.pitchedBy]);
 
-  // 5. Auth verification and state retrieval[cite: 1]
+  // 5. Auth verification & autofill
   useEffect(() => {
     let isMounted = true;
 
@@ -304,7 +304,7 @@ export default function MembershipForm() {
         if (isMounted) setUser(currentUser);
         const cleanEmail = currentUser.email?.toLowerCase().trim();
 
-        // Check if user already submitted application in members_26[cite: 1]
+        // Check if user already submitted application
         const { data: existingMember } = await supabase
           .from('members_26')
           .select('randomize_id, full_name, status, registration_type')
@@ -322,7 +322,7 @@ export default function MembershipForm() {
           return;
         }
 
-        // Fetch directory entry for autofill[cite: 1]
+        // Fetch directory entry for autofill
         let { data: dirProfile } = await supabase
           .from('randomize_directory')
           .select('*')
@@ -620,7 +620,6 @@ export default function MembershipForm() {
             /* 2. State-Aware Minimal Success Card */
             <div className="w-full py-[24px] sm:py-[28px] flex flex-col items-center text-center space-y-[16px] sm:space-y-[18px]">
               
-              {/* Status Graphic */}
               {successData.status === 'verified' ? (
                 <div className="w-[50px] sm:w-[54px] h-[50px] sm:h-[54px] bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/10">
                   <CheckCircle2 className="w-[26px] sm:w-[28px] h-[26px] sm:h-[28px] text-emerald-400" aria-hidden="true" />
@@ -685,7 +684,7 @@ export default function MembershipForm() {
 
               <form onSubmit={handleSubmit} className="w-full space-y-[12px] min-[400px]:space-y-[14px] sm:space-y-[16px]">
                 
-                {/* Authenticated Gmail (Read-only) */}
+                {/* Authenticated Gmail */}
                 <div className="space-y-[4px]">
                   <label htmlFor="auth-email" className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 block">Personal Gmail (Authenticated)</label>
                   <input 
@@ -740,7 +739,7 @@ export default function MembershipForm() {
                   )}
                 </fieldset>
 
-                {/* Text Input Fields */}
+                {/* Text Inputs */}
                 {[
                   { id: 'name', label: 'Full Name *', type: 'text', placeholder: 'e.g. Mohak Singhal', val: formData.name, autoComplete: 'name' },
                   { id: 'regNo', label: 'Registration Number *', type: 'text', placeholder: 'e.g. 24568478', val: formData.regNo, inputMode: 'numeric', pattern: '[0-9]*' },
@@ -780,7 +779,7 @@ export default function MembershipForm() {
                   </div>
                 ))}
 
-                {/* Course Selector Dropdown */}
+                {/* Course Selector */}
                 <div className="space-y-[4px]">
                   <label htmlFor="course-select" className="block text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400">
                     Academic Programme / Course *
@@ -803,7 +802,7 @@ export default function MembershipForm() {
                   </div>
                 </div>
 
-                {/* Pitched By Searchable Dropdown */}
+                {/* Searchable Pitched By Dropdown */}
                 <div className="space-y-[4px] relative" ref={pitchedByRef}>
                   <label 
                     htmlFor="pitched-by-input" 
@@ -891,7 +890,7 @@ export default function MembershipForm() {
                   )}
                 </div>
 
-                {/* Accommodation Radio Selector */}
+                {/* Accommodation Selector */}
                 <fieldset className="pt-[2px]">
                   <legend className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 mb-[6px]">Your Accommodation *</legend>
                   <div className="grid grid-cols-1 min-[400px]:grid-cols-3 gap-[6px] sm:gap-[8px]">
@@ -915,7 +914,7 @@ export default function MembershipForm() {
                   </div>
                 </fieldset>
 
-                {/* Plan Summary Card */}
+                {/* Dynamic Plan Summary Card */}
                 <div className="p-[12px] min-[400px]:p-[14px] sm:p-[16px] rounded-[16px] bg-white/[0.02] border border-white/10 my-[10px]">
                   <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 font-semibold mb-[6px] block">
                     Membership Plan
@@ -955,7 +954,7 @@ export default function MembershipForm() {
                   </p>
                 </div>
 
-                {/* Step 2: Screenshot/PDF Dropzone */}
+                {/* Step 2: Receipt Dropzone */}
                 <div className="space-y-[6px] pt-[2px]">
                   <label className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 block">
                     Step 2: Upload Payment Screenshot *
@@ -1016,7 +1015,7 @@ export default function MembershipForm() {
                   )}
                 </div>
 
-                {/* Step 3: Reference ID Input */}
+                {/* Step 3: Transaction ID */}
                 <div className="space-y-[4px]">
                   <div className="flex items-center justify-between">
                     <label htmlFor="ref-id" className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400">
