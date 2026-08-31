@@ -73,10 +73,6 @@ const COURSES = [
 
 const PITCHED_BY_OPTIONS = [
   {
-    category: "General",
-    members: ["NONE"]
-  },
-  {
     category: "Executive Team",
     members: [
       "Rashi Srivastava (President)",
@@ -199,12 +195,12 @@ export default function MembershipForm() {
     academicDetails: COURSES[0].name,
     courseDuration: 4,
     accommodation: 'GHS',
-    pitchedBy: 'NONE',
+    pitchedBy: '',
     paymentReferenceId: '',
     paymentProof: null
   });
 
-  const [pitchedBySearch, setPitchedBySearch] = useState('NONE');
+  const [pitchedByQuery, setPitchedByQuery] = useState('');
   const [pitchedByDropdownOpen, setPitchedByDropdownOpen] = useState(false);
   const pitchedByRef = useRef(null);
 
@@ -250,12 +246,9 @@ export default function MembershipForm() {
           academicDetails: parsed.academicDetails || prev.academicDetails,
           courseDuration: parsed.courseDuration || prev.courseDuration,
           accommodation: parsed.accommodation || prev.accommodation,
-          pitchedBy: parsed.pitchedBy || parsed.referral || prev.pitchedBy,
+          pitchedBy: parsed.pitchedBy && parsed.pitchedBy !== 'NONE' ? parsed.pitchedBy : prev.pitchedBy,
           paymentReferenceId: parsed.paymentReferenceId || prev.paymentReferenceId
         }));
-        if (parsed.pitchedBy || parsed.referral) {
-          setPitchedBySearch(parsed.pitchedBy || parsed.referral);
-        }
       }
     } catch (e) {
       console.warn("Failed to load saved form data", e);
@@ -277,7 +270,7 @@ export default function MembershipForm() {
     function handleClickOutside(event) {
       if (pitchedByRef.current && !pitchedByRef.current.contains(event.target)) {
         setPitchedByDropdownOpen(false);
-        setPitchedBySearch(prev => (prev.trim() === '' ? (formData.pitchedBy || 'NONE') : prev));
+        setPitchedByQuery('');
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -286,7 +279,7 @@ export default function MembershipForm() {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
     };
-  }, [formData.pitchedBy]);
+  }, []);
 
   // 5. Auth verification & autofill
   useEffect(() => {
@@ -450,6 +443,11 @@ export default function MembershipForm() {
       return;
     }
 
+    if (!formData.pitchedBy.trim() || formData.pitchedBy === 'NONE') {
+      setError("Please select the club member who pitched Randomize(); to you.");
+      return;
+    }
+
     if (!formData.paymentProof || !formData.paymentReferenceId.trim()) {
       setError("Payment Screenshot and Transaction Reference ID are required.");
       return;
@@ -491,7 +489,7 @@ export default function MembershipForm() {
         p_amount: planAmount,
         p_payment_reference_id: formData.paymentReferenceId.trim(),
         p_payment_screenshot_url: screenshotUrl,
-        p_referral: formData.pitchedBy || 'NONE',
+        p_referral: formData.pitchedBy.trim(),
         p_course_duration: formData.courseDuration || 4
       });
 
@@ -533,7 +531,7 @@ export default function MembershipForm() {
   const filteredPitchedByGroups = PITCHED_BY_OPTIONS.map((group) => ({
     ...group,
     members: group.members.filter((m) => 
-      m.toLowerCase().includes(pitchedBySearch.toLowerCase())
+      m.toLowerCase().includes(pitchedByQuery.toLowerCase().trim())
     )
   })).filter((group) => group.members.length > 0);
 
@@ -802,28 +800,31 @@ export default function MembershipForm() {
                   </div>
                 </div>
 
-                {/* Searchable Pitched By Dropdown */}
+                {/* Mandatory Searchable Pitched By Dropdown */}
                 <div className="space-y-[4px] relative" ref={pitchedByRef}>
                   <label 
                     htmlFor="pitched-by-input" 
                     className="block text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400"
                   >
-                    Pitched By (Optional)
+                    Pitched By *
                   </label>
                   
                   <div className="relative flex items-center">
                     <input 
                       id="pitched-by-input"
                       type="text"
-                      placeholder="Search member name or select domain..."
-                      value={pitchedBySearch}
-                      onFocus={() => {
+                      required
+                      placeholder="Select or search member name..."
+                      value={pitchedByDropdownOpen ? pitchedByQuery : (formData.pitchedBy || '')}
+                      onFocus={(e) => {
+                        setPitchedByQuery('');
                         setPitchedByDropdownOpen(true);
-                        if (pitchedBySearch === 'NONE') setPitchedBySearch('');
+                        e.target.select();
                       }}
                       onChange={(e) => {
-                        setPitchedBySearch(e.target.value);
-                        setFormData({...formData, pitchedBy: e.target.value || 'NONE'});
+                        const val = e.target.value;
+                        setPitchedByQuery(val);
+                        setFormData(prev => ({ ...prev, pitchedBy: val }));
                         setPitchedByDropdownOpen(true);
                       }}
                       className="w-full px-[12px] min-[400px]:px-[14px] py-[11px] min-[400px]:py-[12px] pr-[44px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px]"
@@ -834,11 +835,13 @@ export default function MembershipForm() {
                       onClick={() => {
                         setPitchedByDropdownOpen(prev => {
                           const next = !prev;
-                          if (next && pitchedBySearch === 'NONE') setPitchedBySearch('');
+                          if (next) {
+                            setPitchedByQuery('');
+                          }
                           return next;
                         });
                       }}
-                      className="absolute right-[4px] w-[36px] h-[36px] flex items-center justify-center text-gray-400 hover:text-white rounded-[8px] transition-colors"
+                      className="absolute right-[4px] w-[36px] h-[36px] flex items-center justify-center text-gray-400 hover:text-white rounded-[8px] transition-colors cursor-pointer"
                     >
                       <ChevronDown className={`w-[16px] h-[16px] transition-transform ${pitchedByDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -867,11 +870,11 @@ export default function MembershipForm() {
                                     type="button"
                                     key={member}
                                     onClick={() => {
-                                      setFormData({...formData, pitchedBy: member});
-                                      setPitchedBySearch(member);
+                                      setFormData(prev => ({ ...prev, pitchedBy: member }));
+                                      setPitchedByQuery('');
                                       setPitchedByDropdownOpen(false);
                                     }}
-                                    className={`w-full flex items-center justify-between px-[10px] py-[10px] rounded-[8px] text-[12px] text-left transition-colors ${
+                                    className={`w-full flex items-center justify-between px-[10px] py-[10px] rounded-[8px] text-[12px] text-left transition-colors cursor-pointer ${
                                       isSelected 
                                         ? 'bg-white/10 text-white font-medium border border-white/10' 
                                         : 'text-gray-300 hover:bg-white/[0.06] hover:text-white'
@@ -1015,7 +1018,7 @@ export default function MembershipForm() {
                   )}
                 </div>
 
-                {/* Step 3: Transaction ID */}
+                {/* Step 3: Reference ID Input */}
                 <div className="space-y-[4px]">
                   <div className="flex items-center justify-between">
                     <label htmlFor="ref-id" className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400">
