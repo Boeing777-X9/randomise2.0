@@ -195,7 +195,7 @@ export default function MembershipForm() {
     academicDetails: COURSES[0].name,
     courseDuration: 4,
     accommodation: 'GHS',
-    pitchedBy: '',
+    pitchedBy: [], // Array of selected member strings
     paymentReferenceId: '',
     paymentProof: null
   });
@@ -236,6 +236,13 @@ export default function MembershipForm() {
       const saved = localStorage.getItem('membership_form_data');
       if (saved) {
         const parsed = JSON.parse(saved);
+        let restoredPitchedBy = [];
+        if (Array.isArray(parsed.pitchedBy)) {
+          restoredPitchedBy = parsed.pitchedBy;
+        } else if (typeof parsed.pitchedBy === 'string' && parsed.pitchedBy.trim() && parsed.pitchedBy !== 'NONE') {
+          restoredPitchedBy = parsed.pitchedBy.split(',').map(s => s.trim()).filter(Boolean);
+        }
+
         setFormData(prev => ({
           ...prev,
           name: parsed.name || prev.name,
@@ -246,7 +253,7 @@ export default function MembershipForm() {
           academicDetails: parsed.academicDetails || prev.academicDetails,
           courseDuration: parsed.courseDuration || prev.courseDuration,
           accommodation: parsed.accommodation || prev.accommodation,
-          pitchedBy: parsed.pitchedBy && parsed.pitchedBy !== 'NONE' ? parsed.pitchedBy : prev.pitchedBy,
+          pitchedBy: restoredPitchedBy,
           paymentReferenceId: parsed.paymentReferenceId || prev.paymentReferenceId
         }));
       }
@@ -281,12 +288,11 @@ export default function MembershipForm() {
     };
   }, []);
 
-  // 5. Blazing Fast Profile & Directory Hydration (No Mobile Hanging)[cite: 1, 2]
+  // 5. Fast Auth & Directory Verification[cite: 1, 2]
   useEffect(() => {
     let isMounted = true;
     let checkedUserId = null;
 
-    // Hard fallback safety: Never show loader for more than 1.5s on slow mobile networks
     const hardTimeout = setTimeout(() => {
       if (isMounted) setLoading(false);
     }, 1500);
@@ -300,7 +306,6 @@ export default function MembershipForm() {
         return;
       }
 
-      // Prevent duplicate fetches if already run for this user
       if (checkedUserId === sessionUser.id) return;
       checkedUserId = sessionUser.id;
 
@@ -308,7 +313,6 @@ export default function MembershipForm() {
       const cleanEmail = sessionUser.email?.toLowerCase().trim();
 
       try {
-        // Parallel fetch with direct equality checks (instant index hit)[cite: 1, 2]
         const [memberRes, dirRes] = await Promise.all([
           supabase
             .from('members_26')
@@ -324,7 +328,6 @@ export default function MembershipForm() {
 
         if (!isMounted) return;
 
-        // 1. If already registered for 2026-27[cite: 1, 2]
         if (memberRes.data) {
           setSuccessData({
             randomize_id: memberRes.data.randomize_id,
@@ -336,7 +339,6 @@ export default function MembershipForm() {
           return;
         }
 
-        // 2. Autofill from Directory if existing[cite: 1, 2]
         const dirProfile = dirRes.data;
         if (dirProfile) {
           const matchedCourse = COURSES.find(c => 
@@ -360,7 +362,6 @@ export default function MembershipForm() {
               : (matchedCourse ? matchedCourse.duration : 4)
           }));
         } else if (sessionUser.user_metadata?.full_name) {
-          // Fast path for new users
           setFormData(prev => ({
             ...prev,
             name: prev.name || sessionUser.user_metadata.full_name
@@ -373,7 +374,6 @@ export default function MembershipForm() {
       }
     };
 
-    // 1. Instant check via local cached session[cite: 1, 2]
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         loadProfile(session.user);
@@ -384,7 +384,6 @@ export default function MembershipForm() {
       if (isMounted) setLoading(false);
     });
 
-    // 2. Listen for auth state changes (OAuth redirect completion)[cite: 1, 2]
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         loadProfile(session.user);
@@ -433,6 +432,25 @@ export default function MembershipForm() {
       ...prev,
       academicDetails: selectedCourseName,
       courseDuration: found ? found.duration : 4
+    }));
+  };
+
+  const togglePitchedByMember = (memberName) => {
+    setFormData(prev => {
+      const exists = prev.pitchedBy.includes(memberName);
+      const updated = exists 
+        ? prev.pitchedBy.filter(m => m !== memberName)
+        : [...prev.pitchedBy, memberName];
+      return { ...prev, pitchedBy: updated };
+    });
+    setPitchedByQuery('');
+  };
+
+  const removePitchedByMember = (memberName, e) => {
+    e.stopPropagation();
+    setFormData(prev => ({
+      ...prev,
+      pitchedBy: prev.pitchedBy.filter(m => m !== memberName)
     }));
   };
 
@@ -490,8 +508,8 @@ export default function MembershipForm() {
       return;
     }
 
-    if (!formData.pitchedBy.trim() || formData.pitchedBy === 'NONE') {
-      setError("Please select the club member who pitched Randomize(); to you.");
+    if (!formData.pitchedBy || formData.pitchedBy.length === 0) {
+      setError("Please select at least one club member who pitched Randomize(); to you.");
       return;
     }
 
@@ -522,6 +540,7 @@ export default function MembershipForm() {
         .getPublicUrl(fileName);
 
       const screenshotUrl = publicData.publicUrl;
+      const pitchedByCombined = formData.pitchedBy.join(', ');
 
       const { data, error: rpcError } = await supabase.rpc('register_membership', {
         p_user_id: user.id,
@@ -536,7 +555,7 @@ export default function MembershipForm() {
         p_amount: planAmount,
         p_payment_reference_id: formData.paymentReferenceId.trim(),
         p_payment_screenshot_url: screenshotUrl,
-        p_referral: formData.pitchedBy.trim(),
+        p_referral: pitchedByCombined,
         p_course_duration: formData.courseDuration || 4
       });
 
@@ -848,31 +867,48 @@ export default function MembershipForm() {
                   </div>
                 </div>
 
-                {/* Mandatory Searchable Pitched By Dropdown */}
+                {/* Multi-Select Pitched By Field */}
                 <div className="space-y-[4px] relative" ref={pitchedByRef}>
-                  <label 
-                    htmlFor="pitched-by-input" 
-                    className="block text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400"
-                  >
-                    Pitched By *
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label 
+                      htmlFor="pitched-by-input" 
+                      className="block text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400"
+                    >
+                      Pitched By * ({formData.pitchedBy.length} selected)
+                    </label>
+                    <span className="text-[10px] text-zinc-500 font-mono">Select all members who pitched</span>
+                  </div>
                   
+                  {/* Selected Tags Display */}
+                  {formData.pitchedBy.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl mb-1.5">
+                      {formData.pitchedBy.map((member) => (
+                        <span 
+                          key={member}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/20 border border-purple-500/30 text-purple-200 text-xs font-mono"
+                        >
+                          {member}
+                          <button
+                            type="button"
+                            onClick={(e) => removePitchedByMember(member, e)}
+                            className="hover:text-white p-0.5"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="relative flex items-center">
                     <input 
                       id="pitched-by-input"
                       type="text"
-                      required
-                      placeholder="Select or search member name..."
-                      value={pitchedByDropdownOpen ? pitchedByQuery : (formData.pitchedBy || '')}
-                      onFocus={(e) => {
-                        setPitchedByQuery('');
-                        setPitchedByDropdownOpen(true);
-                        e.target.select();
-                      }}
+                      placeholder={formData.pitchedBy.length === 0 ? "Search & select club members..." : "Add another member..."}
+                      value={pitchedByQuery}
+                      onFocus={() => setPitchedByDropdownOpen(true)}
                       onChange={(e) => {
-                        const val = e.target.value;
-                        setPitchedByQuery(val);
-                        setFormData(prev => ({ ...prev, pitchedBy: val }));
+                        setPitchedByQuery(e.target.value);
                         setPitchedByDropdownOpen(true);
                       }}
                       className="w-full px-[12px] min-[400px]:px-[14px] py-[11px] min-[400px]:py-[12px] pr-[44px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px]"
@@ -880,15 +916,7 @@ export default function MembershipForm() {
                     <button
                       type="button"
                       aria-label="Toggle pitched by dropdown"
-                      onClick={() => {
-                        setPitchedByDropdownOpen(prev => {
-                          const next = !prev;
-                          if (next) {
-                            setPitchedByQuery('');
-                          }
-                          return next;
-                        });
-                      }}
+                      onClick={() => setPitchedByDropdownOpen(prev => !prev)}
                       className="absolute right-[4px] w-[36px] h-[36px] flex items-center justify-center text-gray-400 hover:text-white rounded-[8px] transition-colors cursor-pointer"
                     >
                       <ChevronDown className={`w-[16px] h-[16px] transition-transform ${pitchedByDropdownOpen ? 'rotate-180' : ''}`} />
@@ -912,24 +940,20 @@ export default function MembershipForm() {
 
                             <div className="space-y-[1px] pl-[2px]">
                               {group.members.map((member) => {
-                                const isSelected = formData.pitchedBy === member;
+                                const isSelected = formData.pitchedBy.includes(member);
                                 return (
                                   <button
                                     type="button"
                                     key={member}
-                                    onClick={() => {
-                                      setFormData(prev => ({ ...prev, pitchedBy: member }));
-                                      setPitchedByQuery('');
-                                      setPitchedByDropdownOpen(false);
-                                    }}
+                                    onClick={() => togglePitchedByMember(member)}
                                     className={`w-full flex items-center justify-between px-[10px] py-[10px] rounded-[8px] text-[12px] text-left transition-colors cursor-pointer ${
                                       isSelected 
-                                        ? 'bg-white/10 text-white font-medium border border-white/10' 
+                                        ? 'bg-purple-600/30 text-white font-medium border border-purple-500/40' 
                                         : 'text-gray-300 hover:bg-white/[0.06] hover:text-white'
                                     }`}
                                   >
                                     <span>{member}</span>
-                                    {isSelected && <Check className="w-[14px] h-[14px] text-cyan-300" />}
+                                    {isSelected && <Check className="w-[14px] h-[14px] text-purple-300" />}
                                   </button>
                                 );
                               })}
