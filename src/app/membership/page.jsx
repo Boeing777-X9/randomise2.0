@@ -71,104 +71,6 @@ const COURSES = [
   { name: 'Other Academic Programme / PhD', duration: 4 }
 ];
 
-const REFERRAL_OPTIONS = [
-  {
-    category: "General",
-    members: ["NONE"]
-  },
-  {
-    category: "Executive Team",
-    members: [
-      "Rashi Srivastava (President)",
-      "Akshit Yadav (Vice President)",
-      "Aastha Gupta (General Secretary)",
-      "Arsheya Yadav (Treasurer)",
-      "Aditya Mukherjee (Technical Secretary)",
-      "Aaryan Rathee (Managing Director)"
-    ]
-  },
-  {
-    category: "Tech Team (Projects & Webmasters)",
-    members: [
-      "Shlok Goenka",
-      "Mohak Singhal",
-      "Mohammed Faisal",
-      "Anwesha Thakur",
-      "Rick Samanta"
-    ]
-  },
-  {
-    category: "Finance & Corporate Relations (FnR)",
-    members: [
-      "Anshika Adhikari",
-      "Vikhyati Viha",
-      "Gun Agrawal"
-    ]
-  },
-  {
-    category: "Graphic Design (GD)",
-    members: [
-      "Parv Jain",
-      "Tara Hazra"
-    ]
-  },
-  {
-    category: "Outreach & PR",
-    members: [
-      "Shantanu Gupta",
-      "Nikita Handa",
-      "Tanvi Sachdeva",
-      "Asjita Chakraborty"
-    ]
-  },
-  {
-    category: "Editorial",
-    members: [
-      "Anushka Bhattacharjee",
-      "Jiya Vadhera",
-      "Mohammed Fahad Shamsi"
-    ]
-  },
-  {
-    category: "Operations",
-    members: [
-      "Satvik Sharma",
-      "Saima Ray",
-      "Tanish Sharma",
-      "Riddhima Khera"
-    ]
-  },
-  {
-    category: "Productions",
-    members: [
-      "Suhaan Vijay Vergiya",
-      "Suhana Chauhan",
-      "Aradhya Singh"
-    ]
-  },
-  {
-    category: "Social Media & Coverage",
-    members: [
-      "Samreen Naz",
-      "Srishti Gupta",
-      "Agastya Singh",
-      "Pratyush Verma",
-      "Shrishti Mishra",
-      "Akshat Sharma",
-      "Tushar Khowal",
-      "Shambhavi Singh"
-    ]
-  },
-  {
-    category: "Events Team",
-    members: [
-      "Harshit Kapoor",
-      "Harsh Agarwal",
-      "Aaruthra Balamurali"
-    ]
-  }
-];
-
 export default function MembershipForm() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -187,10 +89,6 @@ export default function MembershipForm() {
     paymentProof: null,
     pitchedBy: ''
   });
-
-  const [referralSearch, setReferralSearch] = useState('NONE');
-  const [referralDropdownOpen, setReferralDropdownOpen] = useState(false);
-  const referralRef = useRef(null);
 
   const [activeField, setActiveField] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -235,9 +133,6 @@ export default function MembershipForm() {
           paymentReferenceId: parsed.paymentReferenceId || prev.paymentReferenceId,
           pitchedBy: parsed.pitchedBy || prev.pitchedBy
         }));
-        if (parsed.referral) {
-          setReferralSearch(parsed.referral);
-        }
       }
     } catch (e) {
       console.warn("Failed to load saved form data", e);
@@ -253,28 +148,6 @@ export default function MembershipForm() {
       console.warn("Failed to save form data", e);
     }
   }, [formData]);
-
-  // 4. Click outside logic supporting touchstart
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (referralRef.current && !referralRef.current.contains(event.target)) {
-        setReferralDropdownOpen(false);
-        // Reset search input if empty
-        setReferralSearch(prev => {
-          if (prev.trim() === '') {
-            return formData.referral || 'NONE';
-          }
-          return prev;
-        });
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [formData.referral]);
 
   useEffect(() => {
     let isMounted = true;
@@ -445,6 +318,11 @@ export default function MembershipForm() {
       return;
     }
 
+    if (!formData.pitchedBy.trim()) {
+      setError("Pitched By name is required.");
+      return;
+    }
+
     if (!formData.paymentProof || !formData.paymentReferenceId.trim()) {
       setError("Payment Screenshot and Transaction Reference ID are mandatory.");
       return;
@@ -473,6 +351,8 @@ export default function MembershipForm() {
 
       const screenshotUrl = publicData.publicUrl;
 
+      const amount = formData.registrationType === 'Renewal' ? 100 : 400;
+
       const { data, error: rpcError } = await supabase.rpc('register_membership', {
         p_user_id: user.id,
         p_personal_email: user.email.toLowerCase().trim(),
@@ -482,8 +362,8 @@ export default function MembershipForm() {
         p_phone_number: formData.phone.trim(),
         p_academic_details: formData.academicDetails.trim(),
         p_accommodation: formData.accommodation,
-        p_registration_type: 'Standard',
-        p_amount: 400,
+        p_registration_type: formData.registrationType,
+        p_amount: amount,
         p_payment_reference_id: formData.paymentReferenceId.trim(),
         p_payment_screenshot_url: screenshotUrl,
         p_referral: formData.referral || 'NONE',
@@ -510,12 +390,6 @@ export default function MembershipForm() {
     }
   };
 
-  const filteredReferralGroups = REFERRAL_OPTIONS.map((group) => ({
-    ...group,
-    members: group.members.filter((m) => 
-      m.toLowerCase().includes(referralSearch.toLowerCase())
-    )
-  })).filter((group) => group.members.length > 0);
 
   if (loading) {
     return (
@@ -704,111 +578,20 @@ export default function MembershipForm() {
                   </div>
                 </div>
 
-                {/* Clean Referral Dropdown with Subtle Category Headers */}
-                <div className="space-y-[4px] relative" ref={referralRef}>
-                  <label 
-                    htmlFor="referral-input" 
-                    className="block text-[11px] font-mono uppercase tracking-wider text-gray-400"
-                  >
-                    Referred By (Optional)
-                  </label>
-                  
-                  <div className="relative flex items-center">
-                    <input 
-                      id="referral-input"
-                      type="text"
-                      placeholder="Search member name or select domain..."
-                      value={referralSearch}
-                      onFocus={() => {
-                        setReferralDropdownOpen(true);
-                        if (referralSearch === 'NONE') setReferralSearch('');
-                      }}
-                      onChange={(e) => {
-                        setReferralSearch(e.target.value);
-                        setFormData({...formData, referral: e.target.value || 'NONE'});
-                        setReferralDropdownOpen(true);
-                      }}
-                      className="w-full px-[14px] py-[12px] pr-[44px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px]"
-                    />
-                    <button
-                      type="button"
-                      aria-label="Toggle referral dropdown"
-                      onClick={() => {
-                        setReferralDropdownOpen(prev => {
-                          const nextState = !prev;
-                          if (nextState && referralSearch === 'NONE') {
-                            setReferralSearch('');
-                          }
-                          return nextState;
-                        });
-                      }}
-                      className="absolute right-[4px] w-[36px] h-[36px] flex items-center justify-center text-gray-400 hover:text-white rounded-[8px] transition-colors"
-                    >
-                      <ChevronDown className={`w-[16px] h-[16px] transition-transform ${referralDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                  </div>
 
-                  {/* Dropdown Menu Container */}
-                  {referralDropdownOpen && (
-                    <div className="absolute left-0 right-0 top-[102%] z-50 max-h-[280px] overflow-y-auto bg-[#0d0915] border border-white/15 rounded-[14px] shadow-2xl p-[6px] backdrop-blur-2xl scrollbar-thin">
-                      {filteredReferralGroups.length === 0 ? (
-                        <div className="py-[12px] px-[10px] text-center text-gray-400 text-[12px] font-mono">
-                          No matching member found
-                        </div>
-                      ) : (
-                        filteredReferralGroups.map((group) => (
-                          <div key={group.category} className="mb-[8px] last:mb-0">
-                            
-                            {/* Clean Domain Header without purple background */}
-                            <div className="px-[10px] pt-[6px] pb-[4px] border-b border-white/[0.08] mb-[3px]">
-                              <span className="text-[10px] font-mono uppercase tracking-[1.5px] font-semibold text-cyan-400/90">
-                                {group.category}
-                              </span>
-                            </div>
 
-                            {/* Member Options */}
-                            <div className="space-y-[1px] pl-[2px]">
-                              {group.members.map((member) => {
-                                const isSelected = formData.referral === member;
-                                return (
-                                  <button
-                                    type="button"
-                                    key={member}
-                                    onClick={() => {
-                                      setFormData({...formData, referral: member});
-                                      setReferralSearch(member);
-                                      setReferralDropdownOpen(false);
-                                    }}
-                                    className={`w-full flex items-center justify-between px-[10px] py-[10px] rounded-[8px] text-[12px] text-left transition-colors ${
-                                      isSelected 
-                                        ? 'bg-white/10 text-white font-medium border border-white/10' 
-                                        : 'text-gray-300 hover:bg-white/[0.06] hover:text-white'
-                                    }`}
-                                  >
-                                    <span>{member}</span>
-                                    {isSelected && <Check className="w-[14px] h-[14px] text-cyan-300" />}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Pitched By Input (Optional) */}
+                {/* Pitched By Input (Required) */}
                 <div className="space-y-[4px]">
                   <label 
                     htmlFor="pitched-by-input" 
                     className="block text-[11px] font-mono uppercase tracking-wider text-gray-400"
                   >
-                    Pitched By (Optional)
+                    Pitched By *
                   </label>
                   <input 
                     id="pitched-by-input"
                     type="text"
+                    required
                     placeholder="Enter name of the member who pitched to you..."
                     value={formData.pitchedBy || ''}
                     className="w-full px-[14px] py-[12px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px]"
@@ -841,22 +624,32 @@ export default function MembershipForm() {
                 </fieldset>
 
                 {/* Membership Plan Details */}
-                <div className="p-[14px] sm:p-[16px] rounded-[16px] bg-white/[0.02] border border-white/10 my-[10px]">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-gray-400 font-semibold mb-[6px] block">
-                    Membership Plan
-                  </span>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-[13px] sm:text-[14px] font-semibold text-white">Full Annual Access</h4>
-                      <p className="text-[11px] text-gray-400 mt-[2px] leading-relaxed">
-                        Workspaces, internal workshops & priority hackathons.
-                      </p>
-                    </div>
-                    <span className="text-[13px] sm:text-[14px] font-mono text-white font-semibold bg-white/[0.06] border border-white/10 px-[10px] py-[4px] rounded-[8px]">
-                      ₹400
-                    </span>
+                <fieldset className="pt-[2px]">
+                  <legend className="text-[11px] font-mono uppercase tracking-wider text-gray-400 mb-[6px]">Membership Plan *</legend>
+                  <div className="grid grid-cols-2 gap-[8px]">
+                    {[
+                      { type: 'Standard', label: 'New Membership', price: 400 },
+                      { type: 'Renewal', label: 'Membership Renewal', price: 100 }
+                    ].map((plan) => {
+                      const isSelected = formData.registrationType === plan.type;
+                      return (
+                        <button
+                          type="button"
+                          key={plan.type}
+                          onClick={() => setFormData({...formData, registrationType: plan.type})}
+                          className={`py-[12px] px-[8px] text-center rounded-[12px] border transition-colors min-h-[58px] active:scale-[0.98] flex flex-col items-center justify-center ${
+                            isSelected 
+                              ? 'bg-white/10 border-white/40 text-white' 
+                              : 'bg-white/[0.03] border-white/15 text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          <span className="text-[12px] font-semibold">{plan.label}</span>
+                          <span className="text-[11px] font-mono mt-[2px] text-cyan-300">₹{plan.price}</span>
+                        </button>
+                      );
+                    })}
                   </div>
-                </div>
+                </fieldset>
 
                 {/* Step 1: CCAvenue Direct Link Button */}
                 <div className="space-y-[6px]">
@@ -864,7 +657,7 @@ export default function MembershipForm() {
                     Step 1: Complete Payment
                   </label>
                   <a
-                    href="/api/pay/membership"
+                    href={`/api/pay/membership?type=${formData.registrationType}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full py-[14px] px-[16px] rounded-[12px] bg-white/[0.05] hover:bg-white/[0.09] border border-white/15 hover:border-white/30 text-white text-[13px] font-semibold flex items-center justify-center gap-[8px] transition-all min-h-[48px] active:scale-[0.99]"
