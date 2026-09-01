@@ -114,7 +114,8 @@ const PITCHED_BY_OPTIONS = [
       "Shantanu Gupta",
       "Nikita Handa",
       "Tanvi Sachdeva",
-      "Asjita Chakraborty"
+      "Asjita Chakraborty",
+      "Aryan Singh"
     ]
   },
   {
