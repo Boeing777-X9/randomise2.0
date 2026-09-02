@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import Image from "next/image";
 import { Mail, ArrowUpRight, BookOpen } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
+
 const NEWSLETTER_EDITIONS = [
   {
     id: "august-2026",
@@ -23,6 +24,7 @@ const NEWSLETTER_EDITIONS = [
     isFeatured: false,
   },
 ];
+
 export default function NewsletterComingSoonPage() {
   const [email, setEmail] = useState("");
   const [honeypot, setHoneypot] = useState("");
@@ -38,25 +40,22 @@ export default function NewsletterComingSoonPage() {
     async (e) => {
       e.preventDefault();
 
-      // 1. Honeypot check[cite: 3]
       if (honeypot) { 
         setStatus("success"); 
         setMessage("You're on the list!"); 
         return; 
       }
 
-      // 2. Email syntax check[cite: 3]
       if (!isValidEmail(email)) { 
         setStatus("error"); 
         setMessage("Please enter a valid email address."); 
         return; 
       }
 
-      // 3. Bot Turnstile verification check[cite: 3]
       if (!turnstileToken) {
         setStatus("error");
-        setMessage("Bot check pending. Please wait a moment and try again.");
-        return;
+        setMessage("Bot check pending. Please complete the verification."); 
+        return; 
       }
 
       setStatus("loading");
@@ -75,6 +74,7 @@ export default function NewsletterComingSoonPage() {
         const data = await res.json();
 
         if (!res.ok) {
+          setTurnstileToken(""); // Clears expired/burned token
           setStatus("error");
           setMessage(data.error || "Something went wrong. Please try again.");
           return;
@@ -83,8 +83,10 @@ export default function NewsletterComingSoonPage() {
         setStatus("success");
         setMessage(data.message || "You're on the list!");
         setEmail("");
+        setTurnstileToken("");
       } catch (err) {
         console.error("Newsletter submission error:", err);
+        setTurnstileToken("");
         setStatus("error");
         setMessage("Something went wrong. Please try again.");
       }
@@ -99,12 +101,10 @@ export default function NewsletterComingSoonPage() {
       <div style={{ paddingTop: "8rem", paddingBottom: "6rem", paddingLeft: "1.5rem", paddingRight: "1.5rem" }}>
         <div style={{ maxWidth: "64rem", marginLeft: "auto", marginRight: "auto", textAlign: "center" }}>
 
-          {/* Heading */}
           <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-slate-300 tracking-tight mb-4 leading-tight drop-shadow-[0_0_12px_rgba(56,189,248,0.15)]">
             Stay in the Loop
           </h1>
 
-          {/* Subheading */}
           <p style={{ color: "#d1d5db", fontSize: "1rem", lineHeight: "1.75", marginBottom: "2.5rem" }}>
             Catch up on our monthly highlights and subscribe to have every edition delivered directly to your inbox.
           </p>
@@ -122,7 +122,6 @@ export default function NewsletterComingSoonPage() {
             backdropFilter: "blur(12px)",
             position: "relative",
           }}>
-            {/* Ambient Glow */}
             <div style={{
               position: "absolute",
               inset: "-4px",
@@ -204,7 +203,6 @@ export default function NewsletterComingSoonPage() {
             </form>
           </div>
 
-          {/* Status Message */}
           <p
             id="newsletter-status"
             role="status"
@@ -269,7 +267,6 @@ export default function NewsletterComingSoonPage() {
                 />
               </div>
 
-              {/* Gradient Overlay */}
               <div style={{
                 position: "absolute",
                 inset: 0,
@@ -278,7 +275,6 @@ export default function NewsletterComingSoonPage() {
                 zIndex: 10,
               }} />
 
-              {/* Bottom Card Content */}
               <div style={{
                 position: "absolute",
                 bottom: 0,
