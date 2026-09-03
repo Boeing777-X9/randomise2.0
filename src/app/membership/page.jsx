@@ -476,12 +476,10 @@ export default function MembershipForm() {
               </div>
               <div>
                 <h2 className="text-[20px] sm:text-[22px] font-bold text-white mb-[4px]">
-                  {successData.alreadyRegistered ? 'Welcome Back,' : 'Application Logged,'} {successData.full_name?.split(' ')[0]}!
+                  Welcome to Randomize();
                 </h2>
-                <p className="text-[12px] sm:text-[13px] text-gray-400">
-                  {successData.alreadyRegistered 
-                    ? 'You are actively registered for Randomize(); Tenure 2026-27.' 
-                    : 'Your payment details are queued for verification.'}
+                <p className="text-[12px] sm:text-[13px] text-gray-300">
+                  {successData.alreadyRegistered ? 'Welcome back' : 'Welcome aboard'}, {successData.full_name?.split(' ')[0]}! You are registered for Tenure 2026-27.
                 </p>
               </div>
 
