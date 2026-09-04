@@ -6,7 +6,7 @@ import GlassCard from '@/components/membership-card';
 import { 
   UploadCloud, CheckCircle2, AlertTriangle, 
   Sparkles, RefreshCw, ArrowLeft, ExternalLink, CreditCard,
-  ChevronDown, Check, FileText, X
+  ChevronDown, Check, FileText, X, Clock
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -71,6 +71,118 @@ const COURSES = [
   { name: 'Other Academic Programme / PhD', duration: 4 }
 ];
 
+const PITCHED_BY_OPTIONS = [
+  {
+    category: "Executive Team",
+    members: [
+      "Rashi Srivastava (President)",
+      "Akshit Yadav (Vice President)",
+      "Aastha Gupta (General Secretary)",
+      "Arsheya Yadav (Treasurer)",
+      "Aditya Mukherjee (Technical Secretary)",
+      "Aaryan Rathee (Managing Director)"
+    ]
+  },
+  {
+    category: "Tech Team (Projects & Webmasters)",
+    members: [
+      "Shlok Goenka",
+      "Mohak Singhal",
+      "Mohammed Faisal",
+      "Anwesha Thakur",
+      "Rick Samanta"
+    ]
+  },
+  {
+    category: "Finance & Corporate Relations (FnR)",
+    members: [
+      "Anshika Adhikari",
+      "Vikhyati Viha",
+      "Gun Agrawal"
+    ]
+  },
+  {
+    category: "Graphic Design (GD)",
+    members: [
+      "Parv Jain",
+      "Tara Hazra"
+    ]
+  },
+  {
+    category: "Outreach & PR",
+    members: [
+      "Shantanu Gupta",
+      "Nikita Handa",
+      "Tanvi Sachdeva",
+      "Asjita Chakraborty",
+      "Aryan Singh"
+    ]
+  },
+  {
+    category: "Editorial",
+    members: [
+      "Anushka Bhattacharjee",
+      "Jiya Vadhera",
+      "Mohammed Fahad Shamsi"
+    ]
+  },
+  {
+    category: "Operations",
+    members: [
+      "Satvik Sharma",
+      "Saima Ray",
+      "Tanish Sharma",
+      "Riddhima Khera"
+    ]
+  },
+  {
+    category: "Productions",
+    members: [
+      "Suhaan Vijay Vergiya",
+      "Suhana Chauhan",
+      "Aradhya Singh"
+    ]
+  },
+  {
+    category: "Social Media & Coverage",
+    members: [
+      "Samreen Naz",
+      "Srishti Gupta",
+      "Agastya Singh",
+      "Pratyush Verma",
+      "Shrishti Mishra",
+      "Akshat Sharma",
+      "Tushar Khowal",
+      "Shambhavi Singh"
+    ]
+  },
+  {
+    category: "Events Team",
+    members: [
+      "Harshit Kapoor",
+      "Harsh Agarwal",
+      "Aaruthra Balamurali"
+    ]
+  }
+];
+
+function extractTransactionReference(text) {
+  if (!text) return null;
+  const ccavenueMatch = text.match(/(?:Order\s*(?:No|ID|#)|Reference\s*(?:No|ID|#)|CCAvenue\s*Ref)\s*[:#-]?\s*([A-Za-z0-9_-]{8,24})/i);
+  if (ccavenueMatch?.[1]) return ccavenueMatch[1].trim();
+
+  const utrMatch = text.match(/(?:UPI\s*Ref\s*(?:No|ID)?|UTR|Txn\s*ID|Transaction\s*ID)\s*[:#-]?\s*(\d{12})/i);
+  if (utrMatch?.[1]) return utrMatch[1].trim();
+
+  const razorpayMatch = text.match(/\bpay_[a-zA-Z0-9]{14,20}\b/);
+  if (razorpayMatch) return razorpayMatch[0].trim();
+
+  const standaloneUtr = text.match(/\b[1-9]\d{11}\b/);
+  if (standaloneUtr) return standaloneUtr[0].trim();
+
+  return null;
+}
+
 export default function MembershipForm() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -80,15 +192,18 @@ export default function MembershipForm() {
     regNo: '',
     outlookEmail: '',
     phone: '',
-    registrationType: 'Standard',
+    registrationType: 'Standard', // 'Standard' (₹400) or 'Renewal' (₹100)
     academicDetails: COURSES[0].name,
     courseDuration: 4,
     accommodation: 'GHS',
-    referral: 'NONE',
+    pitchedBy: [], // Array of selected member strings
     paymentReferenceId: '',
-    paymentProof: null,
-    pitchedBy: ''
+    paymentProof: null
   });
+
+  const [pitchedByQuery, setPitchedByQuery] = useState('');
+  const [pitchedByDropdownOpen, setPitchedByDropdownOpen] = useState(false);
+  const pitchedByRef = useRef(null);
 
   const [activeField, setActiveField] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -98,7 +213,9 @@ export default function MembershipForm() {
   const [successData, setSuccessData] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 
-  // 1. Image preview URL generator
+  const planAmount = formData.registrationType === 'Renewal' ? 100 : 400;
+
+  // 1. Generate preview blob URL[cite: 1, 2]
   useEffect(() => {
     if (!formData.paymentProof) {
       setImagePreviewUrl(null);
@@ -114,24 +231,31 @@ export default function MembershipForm() {
     }
   }, [formData.paymentProof]);
 
-  // 2. Load form data from localStorage
+  // 2. Load cached form state[cite: 1, 2]
   useEffect(() => {
     try {
       const saved = localStorage.getItem('membership_form_data');
       if (saved) {
         const parsed = JSON.parse(saved);
+        let restoredPitchedBy = [];
+        if (Array.isArray(parsed.pitchedBy)) {
+          restoredPitchedBy = parsed.pitchedBy;
+        } else if (typeof parsed.pitchedBy === 'string' && parsed.pitchedBy.trim() && parsed.pitchedBy !== 'NONE') {
+          restoredPitchedBy = parsed.pitchedBy.split(',').map(s => s.trim()).filter(Boolean);
+        }
+
         setFormData(prev => ({
           ...prev,
           name: parsed.name || prev.name,
           regNo: parsed.regNo || prev.regNo,
           outlookEmail: parsed.outlookEmail || prev.outlookEmail,
           phone: parsed.phone || prev.phone,
+          registrationType: parsed.registrationType || prev.registrationType,
           academicDetails: parsed.academicDetails || prev.academicDetails,
           courseDuration: parsed.courseDuration || prev.courseDuration,
           accommodation: parsed.accommodation || prev.accommodation,
-          referral: parsed.referral || prev.referral,
-          paymentReferenceId: parsed.paymentReferenceId || prev.paymentReferenceId,
-          pitchedBy: parsed.pitchedBy || prev.pitchedBy
+          pitchedBy: restoredPitchedBy,
+          paymentReferenceId: parsed.paymentReferenceId || prev.paymentReferenceId
         }));
       }
     } catch (e) {
@@ -139,7 +263,7 @@ export default function MembershipForm() {
     }
   }, []);
 
-  // 3. Save form data to localStorage
+  // 3. Persist form data[cite: 1, 2]
   useEffect(() => {
     try {
       const { paymentProof, ...serializable } = formData;
@@ -149,74 +273,88 @@ export default function MembershipForm() {
     }
   }, [formData]);
 
+  // 4. Click & Touch outside handler[cite: 1, 2]
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (pitchedByRef.current && !pitchedByRef.current.contains(event.target)) {
+        setPitchedByDropdownOpen(false);
+        setPitchedByQuery('');
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
+
+  // 5. Fast Auth & Directory Verification[cite: 1, 2]
   useEffect(() => {
     let isMounted = true;
+    let checkedUserId = null;
 
-    const initAuthAndDirectory = async () => {
-      try {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const hardTimeout = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 1500);
 
-        if (!currentUser) {
-          if (isMounted) setLoading(false);
-          return;
+    const loadProfile = async (sessionUser) => {
+      if (!sessionUser || !isMounted) {
+        if (isMounted) {
+          setUser(null);
+          setLoading(false);
         }
+        return;
+      }
 
-        if (isMounted) setUser(currentUser);
-        const cleanEmail = currentUser.email?.toLowerCase().trim();
+      if (checkedUserId === sessionUser.id) return;
+      checkedUserId = sessionUser.id;
 
-        // Check if user is already registered in members_26
-        const { data: existingMember } = await supabase
-          .from('members_26')
-          .select('*')
-          .or(`user_id.eq.${currentUser.id},personal_email.ilike.${cleanEmail},outlook_email.ilike.${cleanEmail}`)
-          .maybeSingle();
+      setUser(sessionUser);
+      const cleanEmail = sessionUser.email?.toLowerCase().trim();
 
-        if (existingMember && isMounted) {
+      try {
+        const [memberRes, dirRes] = await Promise.all([
+          supabase
+            .from('members_26')
+            .select('randomize_id, full_name, status, registration_type')
+            .eq('user_id', sessionUser.id)
+            .maybeSingle(),
+          supabase
+            .from('randomize_directory')
+            .select('*')
+            .eq('email', cleanEmail)
+            .maybeSingle()
+        ]);
+
+        if (!isMounted) return;
+
+        if (memberRes.data) {
           setSuccessData({
-            randomize_id: existingMember.randomize_id,
-            full_name: existingMember.full_name,
+            randomize_id: memberRes.data.randomize_id,
+            full_name: memberRes.data.full_name,
+            status: memberRes.data.status || 'pending_verification',
             alreadyRegistered: true
           });
           setLoading(false);
           return;
         }
 
-        // Auto-populate from Directory
-        let { data: dirProfile } = await supabase
-          .from('randomize_directory')
-          .select('*')
-          .or(`email.ilike.${cleanEmail},outlook_email.ilike.${cleanEmail}`)
-          .maybeSingle();
-
-        if (!dirProfile) {
-          const { data: hwProfile } = await supabase
-            .from('hello_world_26')
-            .select('*')
-            .or(`personal_email.ilike.${cleanEmail},outlook_email.ilike.${cleanEmail}`)
-            .maybeSingle();
-
-          if (hwProfile) {
-            dirProfile = {
-              name: hwProfile.full_name,
-              outlook_email: hwProfile.outlook_email,
-              registration_number: hwProfile.registration_number,
-              phone_number: hwProfile.whatsapp_number,
-              course: hwProfile.course_name
-            };
-          }
-        }
-
-        if (dirProfile && isMounted) {
+        const dirProfile = dirRes.data;
+        if (dirProfile) {
           const matchedCourse = COURSES.find(c => 
             dirProfile.course && String(dirProfile.course).toLowerCase().includes(c.name.slice(0, 10).toLowerCase())
           );
 
-          setFormData((prev) => ({
+          const is26Batch = String(dirProfile.registration_number || '').trim().startsWith('26');
+
+          setFormData(prev => ({
             ...prev,
-            name: prev.name || dirProfile.name || currentUser.user_metadata?.full_name || '',
+            name: prev.name || dirProfile.name || sessionUser.user_metadata?.full_name || '',
             outlookEmail: prev.outlookEmail || dirProfile.outlook_email || '',
             regNo: prev.regNo || dirProfile.registration_number || '',
             phone: prev.phone || dirProfile.phone_number || '',
+            registrationType: is26Batch ? 'Standard' : (prev.registrationType || 'Renewal'),
             academicDetails: (prev.academicDetails && prev.academicDetails !== COURSES[0].name)
               ? prev.academicDetails
               : (matchedCourse ? matchedCourse.name : (dirProfile.course || prev.academicDetails)),
@@ -224,28 +362,66 @@ export default function MembershipForm() {
               ? prev.courseDuration
               : (matchedCourse ? matchedCourse.duration : 4)
           }));
-        } else if (currentUser.user_metadata?.full_name && isMounted) {
-          setFormData((prev) => ({
+        } else if (sessionUser.user_metadata?.full_name) {
+          setFormData(prev => ({
             ...prev,
-            name: prev.name || currentUser.user_metadata.full_name
+            name: prev.name || sessionUser.user_metadata.full_name
           }));
         }
       } catch (err) {
-        console.error("Directory lookup error:", err);
+        console.warn("Profile fast-load note:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
-    initAuthAndDirectory();
-    return () => { isMounted = false; };
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadProfile(session.user);
+      } else {
+        if (isMounted) setLoading(false);
+      }
+    }).catch(() => {
+      if (isMounted) setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        loadProfile(session.user);
+      } else {
+        if (isMounted) {
+          setUser(null);
+          setLoading(false);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      clearTimeout(hardTimeout);
+      subscription?.unsubscribe();
+    };
   }, []);
 
+  const handleRegNoChange = (val) => {
+    const clean = val.trim();
+    const is26 = clean.startsWith('26');
+    setFormData(prev => ({
+      ...prev,
+      regNo: val,
+      registrationType: is26 ? 'Standard' : prev.registrationType
+    }));
+  };
+
   const handleGoogleLogin = async () => {
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/membership` 
+      : 'https://randomise2-0-tau.vercel.app/membership';
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { 
-        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/membership` : undefined 
+        redirectTo: redirectUrl
       },
     });
   };
@@ -257,6 +433,25 @@ export default function MembershipForm() {
       ...prev,
       academicDetails: selectedCourseName,
       courseDuration: found ? found.duration : 4
+    }));
+  };
+
+  const togglePitchedByMember = (memberName) => {
+    setFormData(prev => {
+      const exists = prev.pitchedBy.includes(memberName);
+      const updated = exists 
+        ? prev.pitchedBy.filter(m => m !== memberName)
+        : [...prev.pitchedBy, memberName];
+      return { ...prev, pitchedBy: updated };
+    });
+    setPitchedByQuery('');
+  };
+
+  const removePitchedByMember = (memberName, e) => {
+    e.stopPropagation();
+    setFormData(prev => ({
+      ...prev,
+      pitchedBy: prev.pitchedBy.filter(m => m !== memberName)
     }));
   };
 
@@ -275,18 +470,9 @@ export default function MembershipForm() {
       const { data: { text } } = await worker.recognize(file);
       await worker.terminate();
 
-      const ccavenueMatch = text.match(/\b(CCA|CC)?[0-9]{10,16}\b/i);
-      const razorpayMatch = text.match(/pay_[a-zA-Z0-9]{14,}/);
-      const utrMatch = text.match(/\b\d{12}\b/);
-
-      if (ccavenueMatch) {
-        setFormData((prev) => ({ ...prev, paymentReferenceId: ccavenueMatch[0] }));
-        setOcrDetected(true);
-      } else if (razorpayMatch) {
-        setFormData((prev) => ({ ...prev, paymentReferenceId: razorpayMatch[0] }));
-        setOcrDetected(true);
-      } else if (utrMatch) {
-        setFormData((prev) => ({ ...prev, paymentReferenceId: utrMatch[0] }));
+      const extractedId = extractTransactionReference(text);
+      if (extractedId) {
+        setFormData((prev) => ({ ...prev, paymentReferenceId: extractedId }));
         setOcrDetected(true);
       }
     } catch (err) {
@@ -301,12 +487,17 @@ export default function MembershipForm() {
     setError(null);
 
     if (!user) {
-      setError("Please sign in with your Google account first.");
+      setError("Please sign in with Google first.");
       return;
     }
 
     const cleanOutlook = formData.outlookEmail.trim().toLowerCase();
     const cleanRegNo = formData.regNo.trim().toUpperCase();
+
+    if (cleanRegNo.startsWith('26') && formData.registrationType === 'Renewal') {
+      setError("2026 admission batch must register via New Membership.");
+      return;
+    }
 
     if (!cleanOutlook.endsWith('@muj.manipal.edu')) {
       setError("Outlook email must end with @muj.manipal.edu");
@@ -314,17 +505,17 @@ export default function MembershipForm() {
     }
 
     if (!cleanOutlook.includes(cleanRegNo.toLowerCase())) {
-      setError("Registration number does not match your Outlook email ID.");
+      setError("Registration number does not match your Outlook email.");
       return;
     }
 
-    if (!formData.pitchedBy.trim()) {
-      setError("Pitched By name is required.");
+    if (!formData.pitchedBy || formData.pitchedBy.length === 0) {
+      setError("Please select at least one club member who pitched Randomize(); to you.");
       return;
     }
 
     if (!formData.paymentProof || !formData.paymentReferenceId.trim()) {
-      setError("Payment Screenshot and Transaction Reference ID are mandatory.");
+      setError("Payment Screenshot and Transaction Reference ID are required.");
       return;
     }
 
@@ -333,7 +524,7 @@ export default function MembershipForm() {
       const fileExt = formData.paymentProof.name.split('.').pop();
       const fileName = `receipt_${cleanRegNo}_${Date.now()}.${fileExt}`;
       
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('membership-receipts')
         .upload(fileName, formData.paymentProof, {
           cacheControl: '3600',
@@ -342,7 +533,7 @@ export default function MembershipForm() {
         });
 
       if (uploadError) {
-        throw new Error(`Failed to upload payment receipt: ${uploadError.message}`);
+        throw new Error(`Receipt upload failed: ${uploadError.message}`);
       }
 
       const { data: publicData } = supabase.storage
@@ -350,8 +541,7 @@ export default function MembershipForm() {
         .getPublicUrl(fileName);
 
       const screenshotUrl = publicData.publicUrl;
-
-      const amount = formData.registrationType === 'Renewal' ? 100 : 400;
+      const pitchedByCombined = formData.pitchedBy.join(', ');
 
       const { data, error: rpcError } = await supabase.rpc('register_membership', {
         p_user_id: user.id,
@@ -363,49 +553,73 @@ export default function MembershipForm() {
         p_academic_details: formData.academicDetails.trim(),
         p_accommodation: formData.accommodation,
         p_registration_type: formData.registrationType,
-        p_amount: amount,
+        p_amount: planAmount,
         p_payment_reference_id: formData.paymentReferenceId.trim(),
         p_payment_screenshot_url: screenshotUrl,
-        p_referral: formData.referral || 'NONE',
-        p_course_duration: formData.courseDuration || 4,
-        p_pitched_by: formData.pitchedBy.trim() || null
+        p_referral: pitchedByCombined,
+        p_course_duration: formData.courseDuration || 4
       });
 
       if (rpcError) throw rpcError;
 
       if (data?.success) {
-        setSuccessData(data);
+        setSuccessData({
+          randomize_id: data.randomize_id,
+          full_name: data.full_name,
+          status: 'pending_verification',
+          alreadyRegistered: false
+        });
         try {
           localStorage.removeItem('membership_form_data');
         } catch (e) {
           console.warn("Failed to clear saved form data", e);
         }
       } else {
-        throw new Error("Unable to record membership details. Please verify your data.");
+        throw new Error("Unable to record membership application.");
       }
     } catch (err) {
-      setError(err?.message || "Failed to submit membership application.");
+      const msg = err?.message || '';
+      if (msg.includes('already exists')) {
+        setError('Application already exists for this student.');
+      } else if (msg.includes('payment reference')) {
+        setError('Transaction Reference ID already submitted.');
+      } else if (msg.includes('Outlook')) {
+        setError('Enter a valid MUJ Outlook email.');
+      } else if (msg.includes('receipt')) {
+        setError('Failed to upload receipt screenshot.');
+      } else {
+        setError(msg.replace(/^.*?:\s*/, '').slice(0, 60) || 'Submission failed.');
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
+  // Filter ONLY by active user typing query
+  const filteredPitchedByGroups = PITCHED_BY_OPTIONS.map((group) => ({
+    ...group,
+    members: group.members.filter((m) => 
+      m.toLowerCase().includes(pitchedByQuery.toLowerCase().trim())
+    )
+  })).filter((group) => group.members.length > 0);
+
+  const isBatch26 = formData.regNo.trim().startsWith('26');
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-transparent text-white pt-[110px] pb-[80px] relative overflow-hidden flex flex-col items-center justify-center px-[16px]">
-        <RefreshCw className="w-[32px] h-[32px] animate-spin text-purple-400 mb-[12px]" aria-hidden="true" />
+      <div className="min-h-screen bg-transparent text-white pt-[100px] sm:pt-[110px] pb-[80px] relative overflow-hidden flex flex-col items-center justify-center px-[16px]">
+        <RefreshCw className="w-[30px] h-[30px] animate-spin text-purple-400 mb-[12px]" aria-hidden="true" />
         <p className="text-[12px] font-mono text-gray-400 tracking-wider uppercase">Checking Membership Profile...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white pt-[96px] sm:pt-[120px] pb-[80px] sm:pb-[96px] relative overflow-hidden flex flex-col items-center justify-start px-[12px] sm:px-[16px]">
+    <div className="min-h-screen bg-transparent text-white pt-[88px] min-[400px]:pt-[96px] sm:pt-[120px] pb-[72px] sm:pb-[96px] relative overflow-hidden flex flex-col items-center justify-start px-[10px] min-[400px]:px-[14px] sm:px-[16px]">
       
-      {/* Subtle Background Radial Glow */}
+      {/* Background Radial Ambient Glow */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-1/4 left-1/3 w-[360px] sm:w-[500px] h-[360px] sm:h-[500px] bg-purple-600/[0.06] rounded-full blur-[140px]" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[320px] sm:w-[500px] h-[320px] sm:h-[500px] bg-purple-600/[0.07] rounded-full blur-[120px]" />
       </div>
 
       <div 
@@ -413,51 +627,51 @@ export default function MembershipForm() {
         style={{ width: "560px", maxWidth: "100%" }}
       >
         {/* Navigation Bar */}
-        <div className="w-full flex items-center justify-between pb-[4px] px-[4px]">
+        <div className="w-full flex items-center justify-between pb-[2px] px-[2px]">
           <Link 
             href="/" 
-            className="inline-flex items-center gap-[6px] text-[12px] font-mono uppercase tracking-wider text-gray-400 hover:text-white transition-colors min-h-[44px] py-[8px]"
+            className="inline-flex items-center gap-[6px] text-[11px] sm:text-[12px] font-mono uppercase tracking-wider text-gray-400 hover:text-white transition-colors min-h-[44px] py-[8px]"
           >
-            <ArrowLeft className="w-[16px] h-[16px]" aria-hidden="true" /> Return Home
+            <ArrowLeft className="w-[15px] h-[15px]" aria-hidden="true" /> Return Home
           </Link>
-          <span className="px-[10px] py-[4px] bg-white/5 border border-white/10 rounded-full text-[10px] font-mono tracking-widest text-cyan-300 uppercase font-semibold">
+          <span className="px-[8px] sm:px-[10px] py-[3px] sm:py-[4px] bg-white/5 border border-white/10 rounded-full text-[9px] sm:text-[10px] font-mono tracking-widest text-cyan-300 uppercase font-semibold">
             Tenure 2026-27
           </span>
         </div>
 
         {/* Liquid Glass Shell */}
         <div 
-          className="relative z-10 w-full bg-[#0c0812]/85 backdrop-blur-xl border border-white/10 rounded-[20px] min-[400px]:rounded-[24px] sm:rounded-[32px] p-[14px] min-[400px]:p-[20px] sm:p-[32px] shadow-2xl text-left overflow-hidden"
+          className="relative z-10 w-full bg-[#0c0812]/90 backdrop-blur-xl border border-white/10 rounded-[20px] min-[400px]:rounded-[24px] sm:rounded-[32px] p-[12px] min-[400px]:p-[18px] sm:p-[32px] shadow-2xl text-left overflow-hidden"
           style={{ width: "100%" }}
         >
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
 
-          {/* Club Header */}
+          {/* Club Header Glass Card */}
           <GlassCard 
-            className="w-full mb-[20px] relative"
-            innerClassName="p-[14px] min-[400px]:p-[16px] sm:p-[20px]"
+            className="w-full mb-[16px] sm:mb-[20px] relative"
+            innerClassName="p-[12px] min-[400px]:p-[16px] sm:p-[20px]"
           >
-            <h1 className="text-[22px] sm:text-[24px] font-black mb-[6px] text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 text-center leading-tight">
+            <h1 className="text-[20px] min-[400px]:text-[22px] sm:text-[24px] font-black mb-[4px] sm:mb-[6px] text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 text-center leading-tight">
               Join Randomize();
             </h1>
-            <p className="text-[12px] sm:text-[13px] text-gray-300 leading-relaxed text-center">
+            <p className="text-[11px] min-[400px]:text-[12px] sm:text-[13px] text-gray-300 leading-relaxed text-center">
               The Official Computing Club of Manipal University Jaipur.
             </p>
-            <div className="mt-[10px] pt-[8px] border-t border-white/[0.08] text-center font-mono">
-              <p className="text-[9px] sm:text-[10px] text-cyan-300 uppercase font-bold tracking-[0.2em] m-0">IDEATE . COMMIT . SUCCEED</p>
+            <div className="mt-[8px] sm:mt-[10px] pt-[6px] sm:pt-[8px] border-t border-white/[0.08] text-center font-mono">
+              <p className="text-[8.5px] min-[400px]:text-[9.5px] sm:text-[10px] text-cyan-300 uppercase font-bold tracking-[0.2em] m-0">IDEATE . COMMIT . SUCCEED</p>
             </div>
           </GlassCard>
 
-          {/* 1. Unauthenticated Google Gate */}
+          {/* 1. Unauthenticated Google Login Gate */}
           {!user ? (
-            <div className="w-full py-[28px] flex flex-col items-center text-center">
-              <p className="text-[13px] sm:text-[14px] text-gray-300 mb-[20px] max-w-[340px] leading-relaxed">
+            <div className="w-full py-[24px] sm:py-[28px] flex flex-col items-center text-center">
+              <p className="text-[12px] min-[400px]:text-[13px] sm:text-[14px] text-gray-300 mb-[18px] sm:mb-[20px] max-w-[340px] leading-relaxed">
                 Sign in with your personal Google account to start or access your membership portal.
               </p>
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="flex items-center justify-center gap-[12px] w-full py-[14px] sm:py-[16px] rounded-[14px] font-semibold text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 transition-all active:scale-[0.99] min-h-[48px] cursor-pointer"
+                className="flex items-center justify-center gap-[10px] sm:gap-[12px] w-full py-[14px] sm:py-[16px] rounded-[14px] font-semibold text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 transition-all active:scale-[0.99] min-h-[48px] cursor-pointer"
               >
                 <svg className="w-[18px] h-[18px] bg-white rounded-full p-[2px] shrink-0" viewBox="0 0 48 48" aria-hidden="true">
                   <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
@@ -469,11 +683,13 @@ export default function MembershipForm() {
               </button>
             </div>
           ) : successData ? (
-            /* 2. Instant ID Display Card for Registered Members */
-            <div className="w-full py-[28px] flex flex-col items-center text-center space-y-[18px]">
-              <div className="w-[60px] h-[60px] bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-[30px] h-[30px] text-emerald-400" aria-hidden="true" />
+            /* 2. State-Aware Minimal Success Card */
+            <div className="w-full py-[24px] sm:py-[28px] flex flex-col items-center text-center space-y-[16px] sm:space-y-[18px]">
+              
+              <div className="w-[50px] sm:w-[54px] h-[50px] sm:h-[54px] bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                <CheckCircle2 className="w-[26px] sm:w-[28px] h-[26px] sm:h-[28px] text-emerald-400" aria-hidden="true" />
               </div>
+
               <div>
                 <h2 className="text-[20px] sm:text-[22px] font-bold text-white mb-[4px]">
                   Welcome to Randomize();
@@ -483,43 +699,98 @@ export default function MembershipForm() {
                 </p>
               </div>
 
+              {/* ID Pill Box with Live Approval Badge */}
               <div 
-                className="bg-white/[0.03] border border-white/10 rounded-[16px] p-[16px] flex flex-col items-center justify-center shadow-xl"
-                style={{ width: "260px", minHeight: "95px" }}
+                className="bg-white/[0.03] border border-white/10 rounded-[16px] p-[16px] flex flex-col items-center justify-center shadow-xl relative w-full max-w-[280px]"
+                style={{ minHeight: "105px" }}
               >
-                <span className="text-[11px] text-gray-400 font-mono uppercase tracking-[1.5px] mb-[6px] block text-center">
+                <span className="text-[10px] sm:text-[11px] text-gray-400 font-mono uppercase tracking-[1.5px] mb-[4px] block text-center">
                   YOUR RANDOMIZE ID
                 </span>
-                <span className="text-[22px] sm:text-[24px] leading-[28px] font-extrabold text-white tracking-[2px] font-mono whitespace-nowrap block text-center">
+                <span className="text-[20px] min-[400px]:text-[22px] sm:text-[24px] leading-[28px] font-extrabold text-white tracking-[2px] font-mono whitespace-nowrap block text-center">
                   {successData.randomize_id}
                 </span>
+
+                {/* Status Indicator Bar */}
+                <div className="mt-[8px] pt-[6px] border-t border-white/[0.06] w-full flex items-center justify-center">
+                  <span className="text-[9.5px] sm:text-[10px] font-mono uppercase tracking-[1px] text-emerald-400 font-semibold flex items-center gap-[4px]">
+                    <span className="w-[5px] h-[5px] rounded-full bg-emerald-400 inline-block" />
+                    Member • Tenure 2026-27
+                  </span>
+                </div>
               </div>
             </div>
           ) : (
-            /* 3. New Application Form */
+            /* 3. Main Form */
             <>
               {error && (
-                <div role="alert" className="mb-[18px] p-[12px] sm:p-[14px] bg-red-500/10 border border-red-500/30 rounded-[12px] flex items-start gap-[10px] text-red-300">
-                  <AlertTriangle className="w-[16px] h-[16px] shrink-0 mt-[2px] text-red-400" aria-hidden="true" />
-                  <p className="text-[12px]">{error}</p>
+                <div 
+                  role="alert" 
+                  className="mb-[14px] px-[12px] py-[10px] bg-red-500/10 border border-red-500/20 rounded-[10px] flex items-center gap-[8px] text-red-300"
+                >
+                  <AlertTriangle className="w-[14px] h-[14px] shrink-0 text-red-400" aria-hidden="true" />
+                  <span className="text-[11.5px] sm:text-[12px] font-mono leading-tight">{error}</span>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="w-full space-y-[14px] sm:space-y-[16px]">
+              <form onSubmit={handleSubmit} className="w-full space-y-[12px] min-[400px]:space-y-[14px] sm:space-y-[16px]">
                 
                 {/* Authenticated Gmail */}
                 <div className="space-y-[4px]">
-                  <label htmlFor="auth-email" className="text-[11px] font-mono uppercase tracking-wider text-gray-400 block">Personal Gmail (Authenticated)</label>
+                  <label htmlFor="auth-email" className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 block">Personal Gmail (Authenticated)</label>
                   <input 
                     id="auth-email"
                     type="text" 
                     value={user.email || ''} 
                     readOnly 
-                    className="w-full bg-white/[0.02] border border-white/10 rounded-[12px] px-[14px] py-[12px] text-gray-400 cursor-not-allowed outline-none font-mono text-[16px] sm:text-[13px] min-h-[48px]" 
+                    className="w-full bg-white/[0.02] border border-white/10 rounded-[12px] px-[12px] min-[400px]:px-[14px] py-[11px] min-[400px]:py-[12px] text-gray-400 cursor-not-allowed outline-none font-mono text-[16px] sm:text-[13px] min-h-[48px]" 
                   />
                 </div>
 
-                {/* Text Fields */}
+                {/* Membership Type Switcher */}
+                <fieldset className="space-y-[4px]">
+                  <legend className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 block mb-[4px]">
+                    Membership Mode *
+                  </legend>
+                  <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-[6px]">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, registrationType: 'Standard'})}
+                      className={`py-[12px] px-[8px] text-center rounded-[12px] text-[12px] font-medium border transition-all min-h-[48px] active:scale-[0.98] ${
+                        formData.registrationType === 'Standard'
+                          ? 'bg-white/10 border-white/40 text-white font-semibold'
+                          : 'bg-white/[0.03] border-white/15 text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      New Membership (₹400)
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isBatch26}
+                      onClick={() => {
+                        if (!isBatch26) {
+                          setFormData({...formData, registrationType: 'Renewal'});
+                        }
+                      }}
+                      className={`py-[12px] px-[8px] text-center rounded-[12px] text-[12px] font-medium border transition-all min-h-[48px] active:scale-[0.98] ${
+                        isBatch26 
+                          ? 'opacity-40 cursor-not-allowed bg-white/[0.01] border-white/10 text-gray-500' 
+                          : formData.registrationType === 'Renewal'
+                            ? 'bg-white/10 border-white/40 text-white font-semibold'
+                            : 'bg-white/[0.03] border-white/15 text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      Renewal (Existing Members) (₹100)
+                    </button>
+                  </div>
+                  {isBatch26 && (
+                    <p className="text-[9.5px] sm:text-[10px] text-amber-400/80 font-mono mt-[3px]">
+                      * 2026 admission batch is restricted to New Membership.
+                    </p>
+                  )}
+                </fieldset>
+
+                {/* Text Inputs */}
                 {[
                   { id: 'name', label: 'Full Name *', type: 'text', placeholder: 'e.g. Mohak Singhal', val: formData.name, autoComplete: 'name' },
                   { id: 'regNo', label: 'Registration Number *', type: 'text', placeholder: 'e.g. 24568478', val: formData.regNo, inputMode: 'numeric', pattern: '[0-9]*' },
@@ -529,7 +800,7 @@ export default function MembershipForm() {
                   <div key={field.id} className="space-y-[4px]">
                     <label 
                       htmlFor={field.id}
-                      className={`block text-[11px] font-mono uppercase tracking-wider transition-colors ${activeField === field.id ? 'text-gray-200' : 'text-gray-400'}`}
+                      className={`block text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider transition-colors ${activeField === field.id ? 'text-gray-200' : 'text-gray-400'}`}
                     >
                       {field.label}
                     </label>
@@ -545,17 +816,23 @@ export default function MembershipForm() {
                       autoCapitalize={field.autoCapitalize}
                       autoCorrect={field.autoCorrect}
                       spellCheck={field.spellCheck}
-                      className="w-full px-[14px] py-[12px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none transition-all focus:border-white/40 focus:bg-white/[0.07] placeholder:text-gray-500 min-h-[48px]"
+                      className="w-full px-[12px] min-[400px]:px-[14px] py-[11px] min-[400px]:py-[12px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none transition-all focus:border-white/40 focus:bg-white/[0.07] placeholder:text-gray-500 min-h-[48px]"
                       onFocus={() => setActiveField(field.id)}
                       onBlur={() => setActiveField(null)}
-                      onChange={(e) => setFormData({...formData, [field.id]: e.target.value})}
+                      onChange={(e) => {
+                        if (field.id === 'regNo') {
+                          handleRegNoChange(e.target.value);
+                        } else {
+                          setFormData({...formData, [field.id]: e.target.value});
+                        }
+                      }}
                     />
                   </div>
                 ))}
 
-                {/* Full Academic Programme Selection */}
+                {/* Course Selector */}
                 <div className="space-y-[4px]">
-                  <label htmlFor="course-select" className="block text-[11px] font-mono uppercase tracking-wider text-gray-400">
+                  <label htmlFor="course-select" className="block text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400">
                     Academic Programme / Course *
                   </label>
                   <div className="relative">
@@ -564,7 +841,7 @@ export default function MembershipForm() {
                       required
                       value={formData.academicDetails}
                       onChange={handleCourseChange}
-                      className="w-full px-[14px] py-[12px] pr-[36px] bg-[#120c1d] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px] appearance-none cursor-pointer"
+                      className="w-full px-[12px] min-[400px]:px-[14px] py-[11px] min-[400px]:py-[12px] pr-[36px] bg-[#120c1d] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px] appearance-none cursor-pointer"
                     >
                       {COURSES.map((c) => (
                         <option key={c.name} value={c.name} className="bg-[#120c1d] text-white py-[4px]">
@@ -576,30 +853,107 @@ export default function MembershipForm() {
                   </div>
                 </div>
 
+                {/* Multi-Select Pitched By Field */}
+                <div className="space-y-[4px] relative" ref={pitchedByRef}>
+                  <div className="flex items-center justify-between">
+                    <label 
+                      htmlFor="pitched-by-input" 
+                      className="block text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400"
+                    >
+                      Pitched By * ({formData.pitchedBy.length} selected)
+                    </label>
+                    <span className="text-[10px] text-zinc-500 font-mono">Select all members who pitched</span>
+                  </div>
+                  
+                  {/* Selected Tags Display */}
+                  {formData.pitchedBy.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl mb-1.5">
+                      {formData.pitchedBy.map((member) => (
+                        <span 
+                          key={member}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/20 border border-purple-500/30 text-purple-200 text-xs font-mono"
+                        >
+                          {member}
+                          <button
+                            type="button"
+                            onClick={(e) => removePitchedByMember(member, e)}
+                            className="hover:text-white p-0.5"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
+                  <div className="relative flex items-center">
+                    <input 
+                      id="pitched-by-input"
+                      type="text"
+                      placeholder={formData.pitchedBy.length === 0 ? "Search & select club members..." : "Add another member..."}
+                      value={pitchedByQuery}
+                      onFocus={() => setPitchedByDropdownOpen(true)}
+                      onChange={(e) => {
+                        setPitchedByQuery(e.target.value);
+                        setPitchedByDropdownOpen(true);
+                      }}
+                      className="w-full px-[12px] min-[400px]:px-[14px] py-[11px] min-[400px]:py-[12px] pr-[44px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px]"
+                    />
+                    <button
+                      type="button"
+                      aria-label="Toggle pitched by dropdown"
+                      onClick={() => setPitchedByDropdownOpen(prev => !prev)}
+                      className="absolute right-[4px] w-[36px] h-[36px] flex items-center justify-center text-gray-400 hover:text-white rounded-[8px] transition-colors cursor-pointer"
+                    >
+                      <ChevronDown className={`w-[16px] h-[16px] transition-transform ${pitchedByDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
 
-                {/* Pitched By Input (Required) */}
-                <div className="space-y-[4px]">
-                  <label 
-                    htmlFor="pitched-by-input" 
-                    className="block text-[11px] font-mono uppercase tracking-wider text-gray-400"
-                  >
-                    Pitched By *
-                  </label>
-                  <input 
-                    id="pitched-by-input"
-                    type="text"
-                    required
-                    placeholder="Enter name of the member who pitched to you..."
-                    value={formData.pitchedBy || ''}
-                    className="w-full px-[14px] py-[12px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px]"
-                    onChange={(e) => setFormData({...formData, pitchedBy: e.target.value})}
-                  />
+                  {pitchedByDropdownOpen && (
+                    <div className="absolute left-0 right-0 top-[102%] z-50 max-h-[260px] sm:max-h-[280px] overflow-y-auto bg-[#0d0915] border border-white/15 rounded-[14px] shadow-2xl p-[6px] backdrop-blur-2xl scrollbar-thin">
+                      {filteredPitchedByGroups.length === 0 ? (
+                        <div className="py-[12px] px-[10px] text-center text-gray-400 text-[12px] font-mono">
+                          No matching member found
+                        </div>
+                      ) : (
+                        filteredPitchedByGroups.map((group) => (
+                          <div key={group.category} className="mb-[8px] last:mb-0">
+                            <div className="px-[10px] pt-[6px] pb-[4px] border-b border-white/[0.08] mb-[3px]">
+                              <span className="text-[10px] font-mono uppercase tracking-[1.5px] font-semibold text-cyan-400/90">
+                                {group.category}
+                              </span>
+                            </div>
+
+                            <div className="space-y-[1px] pl-[2px]">
+                              {group.members.map((member) => {
+                                const isSelected = formData.pitchedBy.includes(member);
+                                return (
+                                  <button
+                                    type="button"
+                                    key={member}
+                                    onClick={() => togglePitchedByMember(member)}
+                                    className={`w-full flex items-center justify-between px-[10px] py-[10px] rounded-[8px] text-[12px] text-left transition-colors cursor-pointer ${
+                                      isSelected 
+                                        ? 'bg-purple-600/30 text-white font-medium border border-purple-500/40' 
+                                        : 'text-gray-300 hover:bg-white/[0.06] hover:text-white'
+                                    }`}
+                                  >
+                                    <span>{member}</span>
+                                    {isSelected && <Check className="w-[14px] h-[14px] text-purple-300" />}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Accommodation Selector */}
                 <fieldset className="pt-[2px]">
-                  <legend className="text-[11px] font-mono uppercase tracking-wider text-gray-400 mb-[6px]">Your Accommodation *</legend>
+                  <legend className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 mb-[6px]">Your Accommodation *</legend>
                   <div className="grid grid-cols-1 min-[400px]:grid-cols-3 gap-[6px] sm:gap-[8px]">
                     {['GHS', 'Day Scholar', 'PG/Flat'].map((type) => {
                       const isSelected = formData.accommodation === type;
@@ -621,62 +975,54 @@ export default function MembershipForm() {
                   </div>
                 </fieldset>
 
-                {/* Membership Plan Details */}
-                <fieldset className="pt-[2px]">
-                  <legend className="text-[11px] font-mono uppercase tracking-wider text-gray-400 mb-[6px]">Membership Plan *</legend>
-                  <div className="grid grid-cols-2 gap-[8px]">
-                    {[
-                      { type: 'Standard', label: 'New Membership', price: 400 },
-                      { type: 'Renewal', label: 'Membership Renewal', price: 100 }
-                    ].map((plan) => {
-                      const isSelected = formData.registrationType === plan.type;
-                      return (
-                        <button
-                          type="button"
-                          key={plan.type}
-                          onClick={() => setFormData({...formData, registrationType: plan.type})}
-                          className={`py-[12px] px-[8px] text-center rounded-[12px] border transition-colors min-h-[58px] active:scale-[0.98] flex flex-col items-center justify-center ${
-                            isSelected 
-                              ? 'bg-white/10 border-white/40 text-white' 
-                              : 'bg-white/[0.03] border-white/15 text-gray-400 hover:text-white'
-                          }`}
-                        >
-                          <span className="text-[12px] font-semibold">{plan.label}</span>
-                          <span className="text-[11px] font-mono mt-[2px] text-cyan-300">₹{plan.price}</span>
-                        </button>
-                      );
-                    })}
+                {/* Dynamic Plan Summary Card */}
+                <div className="p-[12px] min-[400px]:p-[14px] sm:p-[16px] rounded-[16px] bg-white/[0.02] border border-white/10 my-[10px]">
+                  <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 font-semibold mb-[6px] block">
+                    Membership Plan
+                  </span>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-[12.5px] min-[400px]:text-[13px] sm:text-[14px] font-semibold text-white">
+                        {formData.registrationType === 'Renewal' ? 'Annual Renewal Pass' : 'Full Annual Access'}
+                      </h4>
+                      <p className="text-[10.5px] sm:text-[11px] text-gray-400 mt-[2px] leading-relaxed">
+                        Workspaces, internal workshops & priority hackathons.
+                      </p>
+                    </div>
+                    <span className="text-[13px] sm:text-[14px] font-mono text-white font-semibold bg-white/[0.06] border border-white/10 px-[10px] py-[4px] rounded-[8px]">
+                      ₹{planAmount}
+                    </span>
                   </div>
-                </fieldset>
+                </div>
 
-                {/* Step 1: CCAvenue Direct Link Button */}
+                {/* Step 1: Payment Link */}
                 <div className="space-y-[6px]">
-                  <label className="text-[11px] font-mono uppercase tracking-wider text-gray-400 block">
-                    Step 1: Complete Payment
+                  <label className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 block">
+                    Step 1: Complete Payment (₹{planAmount})
                   </label>
                   <a
-                    href={`/api/pay/membership?type=${formData.registrationType}`}
+                    href={`/api/pay/membership?amount=${planAmount}&type=${formData.registrationType.toLowerCase()}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-[14px] px-[16px] rounded-[12px] bg-white/[0.05] hover:bg-white/[0.09] border border-white/15 hover:border-white/30 text-white text-[13px] font-semibold flex items-center justify-center gap-[8px] transition-all min-h-[48px] active:scale-[0.99]"
+                    className="w-full py-[13px] sm:py-[14px] px-[14px] sm:px-[16px] rounded-[12px] bg-white/[0.05] hover:bg-white/[0.09] border border-white/15 hover:border-white/30 text-white text-[12.5px] sm:text-[13px] font-semibold flex items-center justify-center gap-[8px] transition-all min-h-[48px] active:scale-[0.99]"
                   >
                     <CreditCard className="w-[16px] h-[16px] text-gray-300 shrink-0" />
-                    <span>Pay with CCAvenue</span>
+                    <span>Pay ₹{planAmount} with CCAvenue</span>
                     <ExternalLink className="w-[14px] h-[14px] text-gray-400 shrink-0" />
                   </a>
-                  <p className="text-[10px] text-gray-400 font-mono text-center">
+                  <p className="text-[9.5px] sm:text-[10px] text-gray-400 font-mono text-center">
                     Opens gateway in a new tab. Complete payment and return here.
                   </p>
                 </div>
 
-                {/* Step 2: Screenshot/PDF Upload */}
+                {/* Step 2: Receipt Dropzone */}
                 <div className="space-y-[6px] pt-[2px]">
-                  <label className="text-[11px] font-mono uppercase tracking-wider text-gray-400 block">
+                  <label className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 block">
                     Step 2: Upload Payment Screenshot *
                   </label>
                   
                   {!formData.paymentProof ? (
-                    <div className="relative flex flex-col items-center justify-center w-full border border-dashed border-white/20 hover:border-white/45 focus-within:border-white/45 rounded-[14px] p-[20px] bg-white/[0.02] transition-colors cursor-pointer text-center min-h-[96px]">
+                    <div className="relative flex flex-col items-center justify-center w-full border border-dashed border-white/20 hover:border-white/45 focus-within:border-white/45 rounded-[14px] p-[16px] min-[400px]:p-[20px] bg-white/[0.02] transition-colors cursor-pointer text-center min-h-[96px]">
                       <input 
                         id="proof-upload"
                         type="file" 
@@ -686,44 +1032,42 @@ export default function MembershipForm() {
                         onChange={handleScreenshotChange}
                       />
                       <div className="space-y-[6px] pointer-events-none flex flex-col items-center">
-                        <UploadCloud className="w-[24px] h-[24px] text-gray-400" aria-hidden="true" />
-                        <p className="text-[12px] text-gray-300 font-medium m-0">
+                        <UploadCloud className="w-[22px] sm:w-[24px] h-[22px] sm:h-[24px] text-gray-400" aria-hidden="true" />
+                        <p className="text-[11.5px] sm:text-[12px] text-gray-300 font-medium m-0">
                           Tap to select receipt photo or PDF
                         </p>
                       </div>
                     </div>
                   ) : (
-                    <div className="relative p-[12px] bg-white/[0.04] border border-white/15 rounded-[14px] flex flex-col gap-[10px]">
-                      {/* Image Preview / File Details */}
+                    <div className="relative p-[10px] min-[400px]:p-[12px] bg-white/[0.04] border border-white/15 rounded-[14px] flex flex-col gap-[10px]">
                       {imagePreviewUrl ? (
                         <div className="relative w-full max-h-[160px] rounded-[10px] overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center p-[4px]">
                           <img 
                             src={imagePreviewUrl} 
                             alt="Payment receipt preview" 
-                            className="max-h-[150px] object-contain rounded-[6px]"
+                            className="max-h-[140px] sm:max-h-[150px] object-contain rounded-[6px]"
                           />
                         </div>
                       ) : (
-                        <div className="w-full py-[16px] rounded-[10px] bg-black/40 border border-white/10 flex items-center justify-center gap-[10px]">
-                          <FileText className="w-[24px] h-[24px] text-purple-400 shrink-0" />
+                        <div className="w-full py-[14px] sm:py-[16px] rounded-[10px] bg-black/40 border border-white/10 flex items-center justify-center gap-[10px]">
+                          <FileText className="w-[22px] sm:w-[24px] h-[22px] sm:h-[24px] text-purple-400 shrink-0" />
                           <div className="text-left overflow-hidden max-w-[70%]">
-                            <p className="text-[12px] text-white font-mono truncate m-0">{formData.paymentProof.name}</p>
-                            <p className="text-[10px] text-gray-400 font-mono m-0">
+                            <p className="text-[11.5px] sm:text-[12px] text-white font-mono truncate m-0">{formData.paymentProof.name}</p>
+                            <p className="text-[9.5px] sm:text-[10px] text-gray-400 font-mono m-0">
                               {(formData.paymentProof.size / 1024).toFixed(1)} KB
                             </p>
                           </div>
                         </div>
                       )}
 
-                      {/* Info & Remove Button Bar */}
                       <div className="flex items-center justify-between pt-[4px] border-t border-white/[0.08]">
-                        <span className="text-[11px] font-mono text-gray-400 truncate max-w-[70%]">
+                        <span className="text-[10.5px] sm:text-[11px] font-mono text-gray-400 truncate max-w-[70%]">
                           {formData.paymentProof.name}
                         </span>
                         <button
                           type="button"
                           onClick={() => setFormData(prev => ({ ...prev, paymentProof: null }))}
-                          className="flex items-center gap-[4px] px-[8px] py-[4px] rounded-[6px] bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 text-[11px] font-mono border border-red-500/20 transition-colors min-h-[28px] cursor-pointer"
+                          className="flex items-center gap-[4px] px-[8px] py-[4px] rounded-[6px] bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 text-[10.5px] sm:text-[11px] font-mono border border-red-500/20 transition-colors min-h-[32px] cursor-pointer"
                         >
                           <X className="w-[12px] h-[12px]" /> Remove
                         </button>
@@ -732,19 +1076,19 @@ export default function MembershipForm() {
                   )}
                 </div>
 
-                {/* Step 3: Reference ID / UTR Input */}
+                {/* Step 3: Reference ID Input */}
                 <div className="space-y-[4px]">
                   <div className="flex items-center justify-between">
-                    <label htmlFor="ref-id" className="text-[11px] font-mono uppercase tracking-wider text-gray-400">
+                    <label htmlFor="ref-id" className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400">
                       Step 3: Reference ID / UTR *
                     </label>
                     {isScanning && (
-                      <span className="flex items-center gap-[4px] text-[10px] text-gray-300 font-mono" aria-live="polite">
+                      <span className="flex items-center gap-[4px] text-[9.5px] sm:text-[10px] text-gray-300 font-mono" aria-live="polite">
                         <RefreshCw className="w-[11px] h-[11px] animate-spin" aria-hidden="true" /> Scanning...
                       </span>
                     )}
                     {ocrDetected && !isScanning && (
-                      <span className="flex items-center gap-[4px] text-[10px] text-emerald-400 font-mono">
+                      <span className="flex items-center gap-[4px] text-[9.5px] sm:text-[10px] text-emerald-400 font-mono">
                         <Sparkles className="w-[11px] h-[11px]" aria-hidden="true" /> Detected
                       </span>
                     )}
@@ -756,16 +1100,16 @@ export default function MembershipForm() {
                     placeholder="e.g. Order ID, Reference ID, or 12-digit UTR"
                     value={formData.paymentReferenceId}
                     onChange={(e) => setFormData({...formData, paymentReferenceId: e.target.value})}
-                    className="w-full px-[14px] py-[12px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white font-mono text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px]"
+                    className="w-full px-[12px] min-[400px]:px-[14px] py-[11px] min-[400px]:py-[12px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white font-mono text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px]"
                   />
                 </div>
 
                 {/* Submit Form CTA */}
-                <div className="pt-[8px] sm:pt-[12px]">
+                <div className="pt-[6px] min-[400px]:pt-[8px] sm:pt-[12px]">
                   <button 
                     type="submit"
                     disabled={submitting || isScanning}
-                    className="w-full py-[14px] rounded-[12px] bg-gradient-to-r from-sky-500 via-blue-600 to-purple-600 hover:from-sky-400 hover:via-blue-500 hover:to-purple-500 active:scale-[0.99] disabled:opacity-50 min-h-[48px] cursor-pointer text-white font-semibold text-[14px] tracking-wide transition-all shadow-md shadow-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 border-0 flex items-center justify-center gap-[8px]"
+                    className="w-full py-[13px] sm:py-[14px] rounded-[12px] bg-gradient-to-r from-sky-500 via-blue-600 to-purple-600 hover:from-sky-400 hover:via-blue-500 hover:to-purple-500 active:scale-[0.99] disabled:opacity-50 min-h-[48px] cursor-pointer text-white font-semibold text-[13.5px] sm:text-[14px] tracking-wide transition-all shadow-md shadow-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 border-0 flex items-center justify-center gap-[8px]"
                   >
                     {submitting ? (
                       <>
