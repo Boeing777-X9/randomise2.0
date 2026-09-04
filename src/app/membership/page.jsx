@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import GlassCard from '@/components/membership-card';
 import { 
   UploadCloud, CheckCircle2, AlertTriangle, 
-  Sparkles, RefreshCw, ArrowLeft, ExternalLink, CreditCard,
+  RefreshCw, ArrowLeft, ExternalLink, CreditCard,
   ChevronDown, Check, FileText, X, Clock
 } from 'lucide-react';
 import Link from 'next/link';
@@ -166,23 +166,6 @@ const PITCHED_BY_OPTIONS = [
   }
 ];
 
-function extractTransactionReference(text) {
-  if (!text) return null;
-  const ccavenueMatch = text.match(/(?:Order\s*(?:No|ID|#)|Reference\s*(?:No|ID|#)|CCAvenue\s*Ref)\s*[:#-]?\s*([A-Za-z0-9_-]{8,24})/i);
-  if (ccavenueMatch?.[1]) return ccavenueMatch[1].trim();
-
-  const utrMatch = text.match(/(?:UPI\s*Ref\s*(?:No|ID)?|UTR|Txn\s*ID|Transaction\s*ID)\s*[:#-]?\s*(\d{12})/i);
-  if (utrMatch?.[1]) return utrMatch[1].trim();
-
-  const razorpayMatch = text.match(/\bpay_[a-zA-Z0-9]{14,20}\b/);
-  if (razorpayMatch) return razorpayMatch[0].trim();
-
-  const standaloneUtr = text.match(/\b[1-9]\d{11}\b/);
-  if (standaloneUtr) return standaloneUtr[0].trim();
-
-  return null;
-}
-
 export default function MembershipForm() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -197,7 +180,6 @@ export default function MembershipForm() {
     courseDuration: 4,
     accommodation: 'GHS',
     pitchedBy: [], // Array of selected member strings
-    paymentReferenceId: '',
     paymentProof: null
   });
 
@@ -206,8 +188,6 @@ export default function MembershipForm() {
   const pitchedByRef = useRef(null);
 
   const [activeField, setActiveField] = useState(null);
-  const [isScanning, setIsScanning] = useState(false);
-  const [ocrDetected, setOcrDetected] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [successData, setSuccessData] = useState(null);
@@ -254,8 +234,7 @@ export default function MembershipForm() {
           academicDetails: parsed.academicDetails || prev.academicDetails,
           courseDuration: parsed.courseDuration || prev.courseDuration,
           accommodation: parsed.accommodation || prev.accommodation,
-          pitchedBy: restoredPitchedBy,
-          paymentReferenceId: parsed.paymentReferenceId || prev.paymentReferenceId
+          pitchedBy: restoredPitchedBy
         }));
       }
     } catch (e) {
@@ -455,32 +434,13 @@ export default function MembershipForm() {
     }));
   };
 
-  const handleScreenshotChange = useCallback(async (e) => {
+  const handleScreenshotChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setFormData((prev) => ({ ...prev, paymentProof: file }));
-    setIsScanning(true);
     setError(null);
-    setOcrDetected(false);
-
-    try {
-      const { createWorker } = await import('tesseract.js');
-      const worker = await createWorker('eng');
-      const { data: { text } } = await worker.recognize(file);
-      await worker.terminate();
-
-      const extractedId = extractTransactionReference(text);
-      if (extractedId) {
-        setFormData((prev) => ({ ...prev, paymentReferenceId: extractedId }));
-        setOcrDetected(true);
-      }
-    } catch (err) {
-      console.warn("Client OCR notice:", err);
-    } finally {
-      setIsScanning(false);
-    }
-  }, []);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -514,8 +474,8 @@ export default function MembershipForm() {
       return;
     }
 
-    if (!formData.paymentProof || !formData.paymentReferenceId.trim()) {
-      setError("Payment Screenshot and Transaction Reference ID are required.");
+    if (!formData.paymentProof) {
+      setError("Please upload your payment screenshot.");
       return;
     }
 
@@ -542,6 +502,7 @@ export default function MembershipForm() {
 
       const screenshotUrl = publicData.publicUrl;
       const pitchedByCombined = formData.pitchedBy.join(', ');
+      const paymentRefId = `RCPT_${cleanRegNo}_${Date.now()}`;
 
       const { data, error: rpcError } = await supabase.rpc('register_membership', {
         p_user_id: user.id,
@@ -554,7 +515,7 @@ export default function MembershipForm() {
         p_accommodation: formData.accommodation,
         p_registration_type: formData.registrationType,
         p_amount: planAmount,
-        p_payment_reference_id: formData.paymentReferenceId.trim(),
+        p_payment_reference_id: paymentRefId,
         p_payment_screenshot_url: screenshotUrl,
         p_referral: pitchedByCombined,
         p_course_duration: formData.courseDuration || 4
@@ -1076,39 +1037,11 @@ export default function MembershipForm() {
                   )}
                 </div>
 
-                {/* Step 3: Reference ID Input */}
-                <div className="space-y-[4px]">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="ref-id" className="text-[10.5px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400">
-                      Step 3: Reference ID / UTR *
-                    </label>
-                    {isScanning && (
-                      <span className="flex items-center gap-[4px] text-[9.5px] sm:text-[10px] text-gray-300 font-mono" aria-live="polite">
-                        <RefreshCw className="w-[11px] h-[11px] animate-spin" aria-hidden="true" /> Scanning...
-                      </span>
-                    )}
-                    {ocrDetected && !isScanning && (
-                      <span className="flex items-center gap-[4px] text-[9.5px] sm:text-[10px] text-emerald-400 font-mono">
-                        <Sparkles className="w-[11px] h-[11px]" aria-hidden="true" /> Detected
-                      </span>
-                    )}
-                  </div>
-                  <input 
-                    id="ref-id"
-                    type="text" 
-                    required 
-                    placeholder="e.g. Order ID, Reference ID, or 12-digit UTR"
-                    value={formData.paymentReferenceId}
-                    onChange={(e) => setFormData({...formData, paymentReferenceId: e.target.value})}
-                    className="w-full px-[12px] min-[400px]:px-[14px] py-[11px] min-[400px]:py-[12px] bg-white/[0.04] border border-white/15 rounded-[12px] text-white font-mono text-[16px] sm:text-[13px] outline-none focus:border-white/40 min-h-[48px]"
-                  />
-                </div>
-
                 {/* Submit Form CTA */}
                 <div className="pt-[6px] min-[400px]:pt-[8px] sm:pt-[12px]">
                   <button 
                     type="submit"
-                    disabled={submitting || isScanning}
+                    disabled={submitting}
                     className="w-full py-[13px] sm:py-[14px] rounded-[12px] bg-gradient-to-r from-sky-500 via-blue-600 to-purple-600 hover:from-sky-400 hover:via-blue-500 hover:to-purple-500 active:scale-[0.99] disabled:opacity-50 min-h-[48px] cursor-pointer text-white font-semibold text-[13.5px] sm:text-[14px] tracking-wide transition-all shadow-md shadow-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 border-0 flex items-center justify-center gap-[8px]"
                   >
                     {submitting ? (
