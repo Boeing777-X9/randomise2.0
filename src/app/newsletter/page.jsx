@@ -74,7 +74,7 @@ export default function NewsletterComingSoonPage() {
         const data = await res.json();
 
         if (!res.ok) {
-          setTurnstileToken(""); // Clears expired/burned token
+          setTurnstileToken("");//this shit was cuasing the bot verification issue
           setStatus("error");
           setMessage(data.error || "Something went wrong. Please try again.");
           return;
