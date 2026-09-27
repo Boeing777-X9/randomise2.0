@@ -170,6 +170,7 @@ function JWTRegistrationFormContent() {
   const [pref1, setPref1] = useState('');
   const [pref2, setPref2] = useState('');
   const [pref3, setPref3] = useState('');
+  const [shiftPreference, setShiftPreference] = useState('');
   
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [techStack, setTechStack] = useState('');
@@ -273,6 +274,7 @@ function JWTRegistrationFormContent() {
             setPref1(draft.pref1 || '');
             setPref2(draft.pref2 || '');
             setPref3(draft.pref3 || '');
+            setShiftPreference(draft.shiftPreference || '');
             setTechStack(draft.techStack || '');
             setIs3dFamiliar(draft.is3dFamiliar || false);
             setHasGraphicExp(draft.hasGraphicExp || false);
@@ -349,7 +351,7 @@ function JWTRegistrationFormContent() {
   useEffect(() => {
     if (isDraftLoaded && user && !successData) {
       const draft = {
-        formData, pref1, pref2, pref3, techStack,
+        formData, pref1, pref2, pref3, shiftPreference, techStack,
         is3dFamiliar, hasGraphicExp, graphicLevel, designTools, 
         socialReachStrategy, hasVideoExp, videoTools, videoLink, 
         outreachStrategy, editorialProcess, editorialUrgent,
@@ -357,7 +359,7 @@ function JWTRegistrationFormContent() {
       };
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
     }
-  }, [formData, pref1, pref2, pref3, techStack, is3dFamiliar, hasGraphicExp, graphicLevel, designTools, socialReachStrategy, hasVideoExp, videoTools, videoLink, outreachStrategy, editorialProcess, editorialUrgent, showForm, rolesConfirmed, profileDone, user, successData, isDraftLoaded]);
+  }, [formData, pref1, pref2, pref3, shiftPreference, techStack, is3dFamiliar, hasGraphicExp, graphicLevel, designTools, socialReachStrategy, hasVideoExp, videoTools, videoLink, outreachStrategy, editorialProcess, editorialUrgent, showForm, rolesConfirmed, profileDone, user, successData, isDraftLoaded]);
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
@@ -473,7 +475,6 @@ function JWTRegistrationFormContent() {
       };
 
       if (existingDirEntry) {
-        // Step 1: Update if the registration number is already perfectly matched
         const { error: updateError } = await supabase
           .from('randomize_directory')
           .update(dirPayload)
@@ -481,7 +482,6 @@ function JWTRegistrationFormContent() {
         if (updateError) throw updateError;
         
       } else if (randomizeId) {
-        // Step 2: Update if they logged in via an email tied to an existing ID (Aaryan's Fix)
         const { error: updateError } = await supabase
           .from('randomize_directory')
           .update(dirPayload)
@@ -489,7 +489,6 @@ function JWTRegistrationFormContent() {
         if (updateError) throw updateError;
         
       } else {
-        // Step 3: Insert ONLY if they are a completely brand-new user with no matches
         const { error: insertError } = await supabase
           .from('randomize_directory')
           .insert(dirPayload);
@@ -525,6 +524,10 @@ function JWTRegistrationFormContent() {
 
     if (!pref1 || !pref2 || !pref3) {
       return setError("Please select all 3 domain preferences.");
+    }
+
+    if (!shiftPreference) {
+      return setError("Please select your MUJ class shift.");
     }
 
     if (!user) return setError("User session is missing.");
@@ -612,6 +615,7 @@ function JWTRegistrationFormContent() {
           phone_number: formData.phoneNumber.trim(),
           year_of_study: parseInt(formData.yearOfStudy),
           domain_preferences: selectedDomains,
+          shift_preference: shiftPreference,
           
           tech_stack: techStack || null,
           github_link: formData.githubLink || null,
@@ -1014,6 +1018,14 @@ function JWTRegistrationFormContent() {
                       <select required value={pref3} onChange={e => setPref3(e.target.value)} className={`${inputStyle} cursor-pointer appearance-none`}>
                         <option value="" className="bg-[#0c0812]">Select Third Domain...</option>
                         {DOMAIN_OPTIONS.map(d => <option key={d} value={d} className="bg-[#0c0812]">{d}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className={labelStyle}>Your College Class Shift *</label>
+                      <select required value={shiftPreference} onChange={e => setShiftPreference(e.target.value)} className={`${inputStyle} cursor-pointer appearance-none`}>
+                        <option value="" className="bg-[#0c0812]">Select Class Shift...</option>
+                        <option value="Morning" className="bg-[#0c0812]">Morning Shift</option>
+                        <option value="Evening" className="bg-[#0c0812]">Evening Shift</option>
                       </select>
                     </div>
                   </div>
