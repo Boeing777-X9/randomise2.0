@@ -116,7 +116,8 @@ interface SuccessData {
 }
 
 const DRAFT_STORAGE_KEY = 'randomize_jwt_draft_26';
-const MAX_FILE_SIZE_MB = 2;
+// Updated size limit to 500KB (0.5MB) to protect Supabase storage
+const MAX_FILE_SIZE_MB = 0.5; 
 const COUNTER_EVENT_ID = '94a0bde7-69af-483a-b8e4-66fa25be981f';
 
 const maskEmail = (email?: string | null) => {
@@ -384,8 +385,9 @@ function JWTRegistrationFormContent() {
       setResumeFile(null);
       return;
     }
+    // Updated file validation logic to force users to compress their own files
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      setError(`Resume file is too large. Maximum size allowed is ${MAX_FILE_SIZE_MB}MB.`);
+      setError(`Resume is too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Max allowed is 500KB. Please compress it using a free site like ilovepdf.com/compress_pdf before uploading.`);
       e.target.value = '';
       setResumeFile(null);
       return;
@@ -1050,7 +1052,7 @@ function JWTRegistrationFormContent() {
                               />
                             </div>
                             <div>
-                              <label className={labelStyle}>Resume (PDF) - Max 2MB *</label>
+                              <label className={labelStyle}>Resume (PDF) - Max 500KB *</label>
                               <input type="file" accept=".pdf" required onChange={handleFileChange} className="w-full text-sm text-gray-400 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:font-bold file:uppercase file:bg-white/10 file:text-white hover:file:bg-white/20 cursor-pointer border border-white/[0.08] bg-white/[0.02] transition-colors" />
                             </div>
                             <div className="md:col-span-2">
