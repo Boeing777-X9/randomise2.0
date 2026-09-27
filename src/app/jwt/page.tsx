@@ -5,10 +5,12 @@ import { supabase } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { CheckCircle, AlertTriangle, ArrowLeft, Info, ArrowRight, BookOpen, LogOut, ChevronDown, ChevronUp, Edit3, Trash2, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
 const DOMAIN_OPTIONS = [
   'Tech', 'Events & operation', 'Gd', 
   'Editorial', 'Social media & coverage', 'FNR', 'Outreach & promotions'
 ];
+
 const MUJ_COURSES = [
   "B.Tech - Computer Science & Engineering (CSE)",
   "B.Tech - Information Technology (IT)",
@@ -52,6 +54,7 @@ const MUJ_COURSES = [
   "Bachelor of Physical Education and Sports (BPES)",
   "Bachelor of Hotel Management (BHM)"
 ];
+
 const getCourseDuration = (courseName: string): number => {
   const lower = courseName.toLowerCase();
   if (lower.includes('b.arch') || lower.includes('ba llb') || lower.includes('bba llb') || lower.includes('integrated')) return 5;
@@ -59,14 +62,17 @@ const getCourseDuration = (courseName: string): number => {
   if (lower.includes('mca') || lower.includes('mba') || lower.includes('llm')) return 2;
   return 3;
 };
+
 const isValidGithubProfile = (url: string): boolean => {
   const pattern = /^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}\/?$/i;
   return pattern.test(url.trim());
 };
+
 const isValidDriveUrl = (url: string): boolean => {
   const pattern = /^https?:\/\/(drive|docs)\.google\.com\/(drive\/(u\/\d+\/)?folders\/|file\/d\/|open\?id=)[a-zA-Z0-9_-]+/i;
   return pattern.test(url.trim());
 };
+
 const DOMAIN_INSTRUCTIONS = [
   {
     name: "Tech",
@@ -101,15 +107,18 @@ const DOMAIN_INSTRUCTIONS = [
     desc: "Teaming up with second-year leads, you’ll drive publicity across campus channels, execute hype campaigns, and get students excited to show up and participate."
   }
 ];
+
 interface SuccessData {
   application_id: string;
   randomize_id?: string | null;
   isExisting?: boolean;
   full_name?: string;
 }
+
 const DRAFT_STORAGE_KEY = 'randomize_jwt_draft_26';
 const MAX_FILE_SIZE_MB = 2;
 const COUNTER_EVENT_ID = '94a0bde7-69af-483a-b8e4-66fa25be981f';
+
 const maskEmail = (email?: string | null) => {
   if (!email) return null;
   const parts = email.split('@');
@@ -464,12 +473,23 @@ function JWTRegistrationFormContent() {
       };
 
       if (existingDirEntry) {
+        // Step 1: Update if the registration number is already perfectly matched
         const { error: updateError } = await supabase
           .from('randomize_directory')
           .update(dirPayload)
           .eq('registration_number', formData.registrationNumber);
         if (updateError) throw updateError;
+        
+      } else if (randomizeId) {
+        // Step 2: Update if they logged in via an email tied to an existing ID (Aaryan's Fix)
+        const { error: updateError } = await supabase
+          .from('randomize_directory')
+          .update(dirPayload)
+          .eq('randomize_id', randomizeId);
+        if (updateError) throw updateError;
+        
       } else {
+        // Step 3: Insert ONLY if they are a completely brand-new user with no matches
         const { error: insertError } = await supabase
           .from('randomize_directory')
           .insert(dirPayload);
@@ -655,7 +675,6 @@ function JWTRegistrationFormContent() {
       <div className="fixed top-[10%] left-[20%] w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none -z-10" />
       <div className="fixed bottom-[20%] right-[20%] w-[500px] h-[500px] bg-pink-600/5 rounded-full blur-[140px] pointer-events-none -z-10" />
 
-      {/* Strict Pixel Constraint for Outer Container: Shrinks to exactly 600px when successful */}
       <div className={`w-full px-2 sm:px-6 relative z-10 flex flex-col mx-auto transition-all duration-500 ease-in-out ${successData ? 'max-w-[600px]' : 'max-w-[90vw] md:max-w-3xl lg:max-w-4xl'}`}>
         
         <div className="flex justify-between items-center mt-8 mb-6 px-2">
@@ -734,7 +753,6 @@ function JWTRegistrationFormContent() {
               <div className="w-full py-10 flex flex-col items-center text-center animate-in fade-in">
                 <CheckCircle className="w-20 h-20 text-purple-400 mb-6 drop-shadow-[0_0_20px_rgba(192,132,252,0.4)]" />
                 
-                {/* Strict Width Pixel Enforcement Blocks (Prevents Word Wrapping) */}
                 <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 w-[500px]">
                   {successData.isExisting ? 'APPLICATION ALREADY SUBMITTED!' : 'APPLICATION SUBMITTED!'}
                 </h2>
@@ -953,7 +971,6 @@ function JWTRegistrationFormContent() {
                   </div>
                 )}
 
-                {/* Profile Card with prominent ID */}
                 <div className="p-5 rounded-2xl border border-white/10 bg-white/[0.02] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-inner shadow-black/10">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300">
@@ -1004,7 +1021,6 @@ function JWTRegistrationFormContent() {
 
                 <div className="space-y-6">
                   
-                  {/* Tech Requirements */}
                   <AnimatePresence>
                     {isTechSelected && (
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
@@ -1035,7 +1051,6 @@ function JWTRegistrationFormContent() {
                     )}
                   </AnimatePresence>
 
-                  {/* Graphic Design Portfolio */}
                   <AnimatePresence>
                     {isGdSelected && (
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
@@ -1112,7 +1127,6 @@ function JWTRegistrationFormContent() {
                     )}
                   </AnimatePresence>
 
-                  {/* Social Media & Coverage Assessment */}
                   <AnimatePresence>
                     {isSocialSelected && (
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
