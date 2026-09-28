@@ -116,7 +116,6 @@ interface SuccessData {
 }
 
 const DRAFT_STORAGE_KEY = 'randomize_jwt_draft_26';
-// Updated size limit to 500KB (0.5MB) to protect Supabase storage
 const MAX_FILE_SIZE_MB = 0.5; 
 const COUNTER_EVENT_ID = '94a0bde7-69af-483a-b8e4-66fa25be981f';
 
@@ -385,7 +384,6 @@ function JWTRegistrationFormContent() {
       setResumeFile(null);
       return;
     }
-    // Updated file validation logic to force users to compress their own files
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
       setError(`Resume is too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Max allowed is 500KB. Please compress it using a free site like ilovepdf.com/compress_pdf before uploading.`);
       e.target.value = '';
@@ -544,9 +542,15 @@ function JWTRegistrationFormContent() {
       if (formData.githubLink && !isValidGithubProfile(formData.githubLink)) {
         return setError("Please enter a valid GitHub profile URL (e.g., https://github.com/username).");
       }
+      
+      // THE SECRET OPTIONAL CHECK
       if (!resumeFile) {
-        return setError("Please upload your PDF resume.");
+        const proceedWithoutResume = window.confirm("You haven't uploaded a resume. Are you absolutely sure you want to proceed without submitting a resume for the Tech interview?");
+        if (!proceedWithoutResume) {
+          return; // Halts the submission process so they can go back and upload it
+        }
       }
+
       if (!techStack.trim()) {
         return setError("Please enter your Tech Stack & Skills.");
       }
@@ -585,6 +589,7 @@ function JWTRegistrationFormContent() {
     try {
       let resumeUrl = '';
       
+      // Uploads resume only if it was actually provided
       if (selectedDomains.includes('Tech') && resumeFile) {
         const fileExt = resumeFile.name.split('.').pop();
         const safeRegNumber = formData.registrationNumber || 'GUEST';
@@ -1052,8 +1057,9 @@ function JWTRegistrationFormContent() {
                               />
                             </div>
                             <div>
+                              {/* Left the * to keep it looking required, but removed 'required' from the input */}
                               <label className={labelStyle}>Resume (PDF) - Max 500KB *</label>
-                              <input type="file" accept=".pdf" required onChange={handleFileChange} className="w-full text-sm text-gray-400 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:font-bold file:uppercase file:bg-white/10 file:text-white hover:file:bg-white/20 cursor-pointer border border-white/[0.08] bg-white/[0.02] transition-colors" />
+                              <input type="file" accept=".pdf" onChange={handleFileChange} className="w-full text-sm text-gray-400 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:font-bold file:uppercase file:bg-white/10 file:text-white hover:file:bg-white/20 cursor-pointer border border-white/[0.08] bg-white/[0.02] transition-colors" />
                             </div>
                             <div className="md:col-span-2">
                               <label className={labelStyle}>Tech Stack & Skills *</label>
