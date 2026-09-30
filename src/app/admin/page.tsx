@@ -15,7 +15,8 @@ import {
   Award, 
   ArrowRight,
   LogOut,
-  ShieldCheck
+  ShieldCheck,
+  UserPlus
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -111,6 +112,15 @@ export default function AdminDashboard() {
   }
 
   const ADMIN_MODULES = [
+    {
+      title: 'JWT Recruitment Admin',
+      desc: 'Review core member applications, access portfolios, and manage candidate interview scheduling.',
+      href: '/admin/jwt',
+      icon: UserPlus,
+      gradient: 'from-fuchsia-500/20 to-purple-500/5',
+      border: 'border-fuchsia-500/30',
+      badge: 'Recruitment 26'
+    },
     {
       title: 'Membership Applications',
       desc: 'Verify UTR/Razorpay transaction screenshots and approve registered members into the official directory.',
