@@ -116,7 +116,7 @@ interface SuccessData {
 }
 
 const DRAFT_STORAGE_KEY = 'randomize_jwt_draft_26';
-const MAX_FILE_SIZE_MB = 0.5; 
+const MAX_FILE_SIZE_MB = 2;
 const COUNTER_EVENT_ID = '94a0bde7-69af-483a-b8e4-66fa25be981f';
 
 const maskEmail = (email?: string | null) => {
@@ -170,7 +170,6 @@ function JWTRegistrationFormContent() {
   const [pref1, setPref1] = useState('');
   const [pref2, setPref2] = useState('');
   const [pref3, setPref3] = useState('');
-  const [shiftPreference, setShiftPreference] = useState('');
   
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [techStack, setTechStack] = useState('');
@@ -274,7 +273,6 @@ function JWTRegistrationFormContent() {
             setPref1(draft.pref1 || '');
             setPref2(draft.pref2 || '');
             setPref3(draft.pref3 || '');
-            setShiftPreference(draft.shiftPreference || '');
             setTechStack(draft.techStack || '');
             setIs3dFamiliar(draft.is3dFamiliar || false);
             setHasGraphicExp(draft.hasGraphicExp || false);
@@ -351,7 +349,7 @@ function JWTRegistrationFormContent() {
   useEffect(() => {
     if (isDraftLoaded && user && !successData) {
       const draft = {
-        formData, pref1, pref2, pref3, shiftPreference, techStack,
+        formData, pref1, pref2, pref3, techStack,
         is3dFamiliar, hasGraphicExp, graphicLevel, designTools, 
         socialReachStrategy, hasVideoExp, videoTools, videoLink, 
         outreachStrategy, editorialProcess, editorialUrgent,
@@ -359,7 +357,7 @@ function JWTRegistrationFormContent() {
       };
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
     }
-  }, [formData, pref1, pref2, pref3, shiftPreference, techStack, is3dFamiliar, hasGraphicExp, graphicLevel, designTools, socialReachStrategy, hasVideoExp, videoTools, videoLink, outreachStrategy, editorialProcess, editorialUrgent, showForm, rolesConfirmed, profileDone, user, successData, isDraftLoaded]);
+  }, [formData, pref1, pref2, pref3, techStack, is3dFamiliar, hasGraphicExp, graphicLevel, designTools, socialReachStrategy, hasVideoExp, videoTools, videoLink, outreachStrategy, editorialProcess, editorialUrgent, showForm, rolesConfirmed, profileDone, user, successData, isDraftLoaded]);
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
@@ -385,7 +383,7 @@ function JWTRegistrationFormContent() {
       return;
     }
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      setError(`Resume is too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Max allowed is 500KB. Please compress it using a free site like ilovepdf.com/compress_pdf before uploading.`);
+      setError(`Resume file is too large. Maximum size allowed is ${MAX_FILE_SIZE_MB}MB.`);
       e.target.value = '';
       setResumeFile(null);
       return;
@@ -475,6 +473,7 @@ function JWTRegistrationFormContent() {
       };
 
       if (existingDirEntry) {
+        // Step 1: Update if the registration number is already perfectly matched
         const { error: updateError } = await supabase
           .from('randomize_directory')
           .update(dirPayload)
@@ -482,6 +481,7 @@ function JWTRegistrationFormContent() {
         if (updateError) throw updateError;
         
       } else if (randomizeId) {
+        // Step 2: Update if they logged in via an email tied to an existing ID (Aaryan's Fix)
         const { error: updateError } = await supabase
           .from('randomize_directory')
           .update(dirPayload)
@@ -489,6 +489,7 @@ function JWTRegistrationFormContent() {
         if (updateError) throw updateError;
         
       } else {
+        // Step 3: Insert ONLY if they are a completely brand-new user with no matches
         const { error: insertError } = await supabase
           .from('randomize_directory')
           .insert(dirPayload);
@@ -526,10 +527,6 @@ function JWTRegistrationFormContent() {
       return setError("Please select all 3 domain preferences.");
     }
 
-    if (!shiftPreference) {
-      return setError("Please select your MUJ class shift.");
-    }
-
     if (!user) return setError("User session is missing.");
     if (mismatchError) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -542,15 +539,9 @@ function JWTRegistrationFormContent() {
       if (formData.githubLink && !isValidGithubProfile(formData.githubLink)) {
         return setError("Please enter a valid GitHub profile URL (e.g., https://github.com/username).");
       }
-      
-      // THE SECRET OPTIONAL CHECK
       if (!resumeFile) {
-        const proceedWithoutResume = window.confirm("You haven't uploaded a resume. Are you absolutely sure you want to proceed without submitting a resume for the Tech interview?");
-        if (!proceedWithoutResume) {
-          return; // Halts the submission process so they can go back and upload it
-        }
+        return setError("Please upload your PDF resume.");
       }
-
       if (!techStack.trim()) {
         return setError("Please enter your Tech Stack & Skills.");
       }
@@ -589,7 +580,6 @@ function JWTRegistrationFormContent() {
     try {
       let resumeUrl = '';
       
-      // Uploads resume only if it was actually provided
       if (selectedDomains.includes('Tech') && resumeFile) {
         const fileExt = resumeFile.name.split('.').pop();
         const safeRegNumber = formData.registrationNumber || 'GUEST';
@@ -622,7 +612,6 @@ function JWTRegistrationFormContent() {
           phone_number: formData.phoneNumber.trim(),
           year_of_study: parseInt(formData.yearOfStudy),
           domain_preferences: selectedDomains,
-          shift_preference: shiftPreference,
           
           tech_stack: techStack || null,
           github_link: formData.githubLink || null,
@@ -1027,14 +1016,6 @@ function JWTRegistrationFormContent() {
                         {DOMAIN_OPTIONS.map(d => <option key={d} value={d} className="bg-[#0c0812]">{d}</option>)}
                       </select>
                     </div>
-                    <div>
-                      <label className={labelStyle}>Your College Class Shift *</label>
-                      <select required value={shiftPreference} onChange={e => setShiftPreference(e.target.value)} className={`${inputStyle} cursor-pointer appearance-none`}>
-                        <option value="" className="bg-[#0c0812]">Select Class Shift...</option>
-                        <option value="Morning" className="bg-[#0c0812]">Morning Shift</option>
-                        <option value="Evening" className="bg-[#0c0812]">Evening Shift</option>
-                      </select>
-                    </div>
                   </div>
                 </div>
 
@@ -1057,9 +1038,8 @@ function JWTRegistrationFormContent() {
                               />
                             </div>
                             <div>
-                              {/* Left the * to keep it looking required, but removed 'required' from the input */}
-                              <label className={labelStyle}>Resume (PDF) - Max 500KB *</label>
-                              <input type="file" accept=".pdf" onChange={handleFileChange} className="w-full text-sm text-gray-400 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:font-bold file:uppercase file:bg-white/10 file:text-white hover:file:bg-white/20 cursor-pointer border border-white/[0.08] bg-white/[0.02] transition-colors" />
+                              <label className={labelStyle}>Resume (PDF) - Max 2MB *</label>
+                              <input type="file" accept=".pdf" required onChange={handleFileChange} className="w-full text-sm text-gray-400 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:font-bold file:uppercase file:bg-white/10 file:text-white hover:file:bg-white/20 cursor-pointer border border-white/[0.08] bg-white/[0.02] transition-colors" />
                             </div>
                             <div className="md:col-span-2">
                               <label className={labelStyle}>Tech Stack & Skills *</label>

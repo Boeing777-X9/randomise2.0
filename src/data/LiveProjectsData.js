@@ -7,6 +7,7 @@ const LiveProjects = [
     imageUrl: "/odysseus.jpg",
     date: "Mar 16, 2020",
     datetime: "2020-03-16",
+    status: "completed",
   },
   {
     id: 2,
@@ -17,6 +18,7 @@ const LiveProjects = [
     imageUrl: "/quill.jpg",
     date: "Mar 16, 2020",
     datetime: "2020-03-16",
+    status: "completed",
   },
   {
     id: 3,
@@ -27,6 +29,7 @@ const LiveProjects = [
     imageUrl: "/pathaan.jpg",
     date: "Mar 16, 2020",
     datetime: "2020-03-16",
+    status: "live",
   },
 ];
 

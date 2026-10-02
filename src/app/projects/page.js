@@ -4,7 +4,23 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import LiveProjectsData from "@/data/LiveProjectsData";
-// import PassionProjectsData from "@/data/PassionProjectsData";
+
+const CATEGORY_STYLES = {
+  live: {
+    badge: 'bg-gradient-to-r from-green-600 to-blue-600',
+    badgeLabel: 'Live',
+    statusPill: 'bg-green-500/20 text-green-400',
+    statusLabel: 'Active',
+    glow: 'linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.4), transparent)',
+  },
+  completed: {
+    badge: 'bg-gradient-to-r from-purple-600 to-pink-600',
+    badgeLabel: 'Completed',
+    statusPill: 'bg-purple-500/20 text-purple-400',
+    statusLabel: 'Completed',
+    glow: 'linear-gradient(45deg, transparent, rgba(168, 85, 247, 0.4), transparent)',
+  },
+};
 
 export default function ProjectsPage() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -14,19 +30,18 @@ export default function ProjectsPage() {
     window.scrollTo(0, 0);
   }, []);
 
-  const allProjects = [
-    ...LiveProjectsData.map(p => ({ ...p, category: 'live' })),
-    // ...PassionProjectsData.map(p => ({ ...p, category: 'passion' })) <--pojects exlcuded 
-  ];
+  const allProjects = LiveProjectsData;
+  const liveProjects = allProjects.filter((p) => p.status === 'live');
+  const completedProjects = allProjects.filter((p) => p.status === 'completed');
 
   const filteredProjects = activeCategory === 'all' 
     ? allProjects 
-    : allProjects.filter(project => project.category === activeCategory);
+    : allProjects.filter(project => project.status === activeCategory);
 
   const categories = [
     { id: 'all', label: 'All Projects', count: allProjects.length },
-    { id: 'live', label: 'Live Projects', count: LiveProjectsData.length },
-    // { id: 'passion', label: 'Passion Projects', count: PassionProjectsData.length } <-- projects excluded
+    { id: 'live', label: 'Live Projects', count: liveProjects.length },
+    { id: 'completed', label: 'Completed Projects', count: completedProjects.length },
   ];
 
   return (
@@ -101,9 +116,12 @@ export default function ProjectsPage() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
-            {filteredProjects.map((project, index) => (
+            {filteredProjects.map((project, index) => {
+              const styles = CATEGORY_STYLES[project.status] ?? CATEGORY_STYLES.live;
+
+              return (
               <motion.div
-                key={`${project.category}-${project.id}`}
+                key={`${project.status}-${project.id}`}
                 className="group relative"
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -113,7 +131,7 @@ export default function ProjectsPage() {
               >
                 <Link href={project.href}>
                   <div className="relative bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 shadow-2xl hover:shadow-blue-500/25 transition-all duration-500 group-hover:scale-105 cursor-pointer h-full">
-                    
+                   
                     {/* Project Image */}
                     <div className="relative h-64 overflow-hidden">
                       <motion.img
@@ -126,16 +144,12 @@ export default function ProjectsPage() {
                       
                       {/* Category Badge */}
                       <motion.div 
-                        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold ${
-                          project.category === 'live' 
-                            ? 'bg-gradient-to-r from-green-600 to-blue-600' 
-                            : 'bg-gradient-to-r from-purple-600 to-pink-600'
-                        }`}
+                        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold ${styles.badge}`}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.1 + 0.3 }}
                       >
-                        {project.category === 'live' ? 'Live' : 'Passion'}
+                        {styles.badgeLabel}
                       </motion.div>
 
                       {/* Hover Overlay */}
@@ -165,7 +179,7 @@ export default function ProjectsPage() {
                     <div className="p-6">
                       <motion.h3 
                         className="text-xl font-bold mb-3 group-hover:text-blue-300 transition-colors duration-300"
-                        layoutId={`title-${project.category}-${project.id}`}
+                        layoutId={`title-${project.status}-${project.id}`}
                       >
                         {project.title}
                       </motion.h3>
@@ -182,12 +196,8 @@ export default function ProjectsPage() {
                           </svg>
                           {project.date}
                         </span>
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          project.category === 'live' 
-                            ? 'bg-green-500/20 text-green-400' 
-                            : 'bg-purple-500/20 text-purple-400'
-                        }`}>
-                          {project.category === 'live' ? 'Active' : 'Creative'}
+                        <span className={`px-2 py-1 rounded-full text-xs ${styles.statusPill}`}>
+                          {styles.statusLabel}
                         </span>
                       </div>
                     </div>
@@ -195,9 +205,7 @@ export default function ProjectsPage() {
                     {/* Glowing Border Effect */}
                     <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                          style={{
-                           background: project.category === 'live' 
-                             ? 'linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.4), transparent)'
-                             : 'linear-gradient(45deg, transparent, rgba(168, 85, 247, 0.4), transparent)',
+                           background: styles.glow,
                            padding: '2px',
                            WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                            WebkitMaskComposite: 'exclude'
@@ -205,7 +213,8 @@ export default function ProjectsPage() {
                   </div>
                 </Link>
               </motion.div>
-            ))}
+              );
+            })}
           </motion.div>
         </AnimatePresence>
 
@@ -239,13 +248,18 @@ export default function ProjectsPage() {
           <p className="text-gray-300 text-lg mb-8">
             We're always looking for passionate individuals to join our innovative projects
           </p>
-          <motion.button 
-            className="px-8 py-4 bg-transparent border border-sky-200/70 text-sky-100 rounded-lg font-semibold transition-all duration-300 shadow-[0_0_14px_rgba(186,230,253,0.2)] hover:shadow-[0_0_26px_rgba(186,230,253,0.45)]"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <Link
+            href="/membership"
+            className="inline-block px-8 py-4 bg-transparent border border-sky-200/70 text-sky-100 rounded-lg font-semibold transition-all duration-300 shadow-[0_0_14px_rgba(186,230,253,0.2)] hover:shadow-[0_0_26px_rgba(186,230,253,0.45)]"
           >
-            Get in Touch
-          </motion.button>
+            <motion.span
+              className="block"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Get in Touch
+            </motion.span>
+          </Link>
         </motion.div>
       </div>
 

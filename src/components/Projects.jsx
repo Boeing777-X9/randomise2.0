@@ -4,17 +4,19 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Floating, { FloatingElement } from '@/fancy/components/image/parallax-floating';
 import LiveProjectsData from '../data/LiveProjectsData';
-import PassionProjectsData from '../data/PassionProjectsData';
 
 export default function Projects() {
+  const liveProjects = LiveProjectsData.filter((p) => p.status === 'live');
+  const completedProjects = LiveProjectsData.filter((p) => p.status === 'completed');
+
   const liveProjectsRef = useRef(null);
-  const passionProjectsRef = useRef(null);
-  
+  const completedProjectsRef = useRef(null);
+
   const liveProjectsInView = useInView(liveProjectsRef, { 
     threshold: 0.3, 
     once: true 
   });
-  const passionProjectsInView = useInView(passionProjectsRef, { 
+  const completedProjectsInView = useInView(completedProjectsRef, { 
     threshold: 0.3, 
     once: true 
   });
@@ -219,9 +221,18 @@ export default function Projects() {
       {/* Live Projects Section */}
       <ProjectSection
         title="Live Projects"
-        projects={LiveProjectsData}
+        projects={liveProjects}
         sectionRef={liveProjectsRef}
         inView={liveProjectsInView}
+        gradientClass="bg-gradient-to-br from-[#2D0FF7]/5 via-[#020108]/60 to-[#6A0FF4]/5"
+      />
+
+      {/* Completed Projects Section */}
+      <ProjectSection
+        title="Completed Projects"
+        projects={completedProjects}
+        sectionRef={completedProjectsRef}
+        inView={completedProjectsInView}
         gradientClass="bg-gradient-to-br from-[#2D0FF7]/5 via-[#020108]/60 to-[#6A0FF4]/5"
       />
 
