@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { 
   Search, Phone, Mail, BookOpen, Home, Calendar, 
@@ -8,6 +9,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function JWTAdminDashboard() {
+  const router = useRouter();
+  
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,13 +21,8 @@ export default function JWTAdminDashboard() {
   const [selectedApp, setSelectedApp] = useState<any | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchApplications();
-  }, []);
-
   const fetchApplications = async () => {
     try {
-      setLoading(true);
       // Fetch all JWT applications
       const { data: appsData, error: appsError } = await supabase
         .from('jwt_recruitment_26')
@@ -45,7 +43,7 @@ export default function JWTAdminDashboard() {
       // Merge the application data with the directory contact data
       const mergedData = appsData.map(app => {
         const dirMatch = dirData.find(d => String(d.registration_number) === String(app.registration_number)) || {};
-        return { ...dirMatch, ...app }; // app data overrides directory data if there are conflicts
+        return { ...dirMatch, ...app }; 
       });
 
       setApplications(mergedData);
@@ -55,6 +53,41 @@ export default function JWTAdminDashboard() {
       setLoading(false);
     }
   };
+
+  const checkAuthAndFetch = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) { 
+        router.push('/admin'); 
+        return; 
+      }
+
+      const { data: admin } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('email', user.email);
+      
+      const currentAdmin = admin?.[0];
+      
+      // Enforce the specific 'jwt' permission to access this page
+      if (!currentAdmin || !currentAdmin.permissions?.includes('jwt')) { 
+        router.push('/admin'); 
+        return; 
+      }
+
+      await fetchApplications();
+      
+    } catch (err: any) {
+      setError('Authentication failure.');
+      setLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => { 
+    checkAuthAndFetch(); 
+  }, [checkAuthAndFetch]);
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -94,7 +127,13 @@ export default function JWTAdminDashboard() {
             </h1>
             <p className="text-gray-400 text-sm mt-1">Review applications and contact candidates for interviews.</p>
           </div>
-          <div className="text-right">
+          <div className="text-right flex items-center gap-4">
+            <button 
+              onClick={() => router.push('/admin')}
+              className="text-gray-400 hover:text-white transition-colors text-sm font-bold border border-white/10 px-4 py-2 rounded-lg bg-white/5"
+            >
+              Back to Portal
+            </button>
             <p className="text-2xl font-bold">{filteredApps.length} <span className="text-sm font-normal text-gray-500">Total Applicants</span></p>
           </div>
         </div>

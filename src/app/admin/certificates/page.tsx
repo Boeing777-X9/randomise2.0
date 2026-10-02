@@ -60,7 +60,8 @@ export default function AdminCertificatesPage() {
         .ilike('email', user.email.trim().toLowerCase())
         .maybeSingle();
 
-      if (error || !adminRecord) {
+      // Enforce the specific 'certificates' permission to access this page
+      if (error || !adminRecord || !adminRecord.permissions?.includes('certificates')) {
         setIsAuthorizedAdmin(false);
       } else {
         setIsAuthorizedAdmin(true);
