@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { jsPDF } from 'jspdf';
 import confetti from 'canvas-confetti';
@@ -19,9 +18,6 @@ interface EligibleParticipant {
 }
 
 export default function CertificatePortal() {
-  // Temporary: render 404 while certificates are paused. Remove this line to re-enable.
-  notFound();
-
   const [regNumber, setRegNumber] = useState('');
   const [emailInput, setEmailInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -93,12 +89,12 @@ export default function CertificatePortal() {
           ? participant.full_name.trim().toUpperCase()
           : 'PARTICIPANT';
 
-        // 3. Dynamic Font Sizing (Reduced sizes for smaller text)
-        let fontSize = Math.round(canvas.height * 0.035); 
+        // 3. Dynamic Font Sizing (Slightly increased for better prominence)
+        let fontSize = Math.round(canvas.height * 0.042); 
         if (nameToPrint.length > 22) {
-          fontSize = Math.round(canvas.height * 0.025); 
+          fontSize = Math.round(canvas.height * 0.028); 
         } else if (nameToPrint.length > 16) {
-          fontSize = Math.round(canvas.height * 0.030); 
+          fontSize = Math.round(canvas.height * 0.035); 
         }
 
         // Wait for Orbitron font to load before drawing to canvas
@@ -263,9 +259,7 @@ export default function CertificatePortal() {
 
             <div className="flex items-center justify-between text-xs text-gray-300 bg-white/5 p-3 rounded-xl">
               <span>Event Attendance:</span>
-              <span className="font-semibold text-green-400">
-                Verified (Attended {participant.day1_confirmed && participant.day2_confirmed ? 'Both Days' : participant.day1_confirmed ? 'Day 1' : 'Day 2'})
-              </span>
+              <span className="font-semibold text-green-400">Verified</span>
             </div>
 
             <button
