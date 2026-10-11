@@ -1,46 +1,7 @@
 'use client';
 
-// import { useEffect } from "react";
-// import { useRouter } from "next/navigation";
-
-// export default function CertificatesPage() {
-//   const router = useRouter();
-
-//   useEffect(() => {
-//     window.scrollTo(0, 0);
-//   }, []);
-
-//   return (
-//     <div className="min-h-screen bg-transparent text-white pt-32 pb-24 relative overflow-hidden flex flex-col items-center justify-center px-4">
-//       {/* Background radial glow */}
-//       <div className="fixed inset-0 pointer-events-none z-0">
-//         <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-purple-600/[0.06] rounded-full blur-[160px]" />
-//       </div>
-
-//       <div 
-//         className="relative z-10 bg-[#0c0812]/80 backdrop-blur-xl border border-white/10 rounded-[32px] p-[40px] shadow-2xl text-center flex flex-col items-center justify-between"
-//         style={{ width: "480px", maxWidth: "90vw", minHeight: "260px" }}
-//       >
-//         <div className="flex flex-col items-center space-y-3">
-//           <h1 className="text-[28px] font-black leading-tight text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500">
-//             Certificates Unavailable
-//           </h1>
-//           <p className="text-gray-400 text-[14px] font-light leading-relaxed">
-//             Certificates are not available for <span className="text-white font-medium">Hello World</span>.
-//           </p>
-//         </div>
-
-//         <button
-//           onClick={() => router.push('/events')}
-//           className="w-full py-[14px] rounded-[12px] font-bold text-[14px] text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer mt-6"
-//         >
-//           Back to Events
-//         </button>
-//       </div>
-//     </div>
-//   );
-// }
 import { useState } from 'react';
+import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { jsPDF } from 'jspdf';
 import confetti from 'canvas-confetti';
@@ -58,6 +19,9 @@ interface EligibleParticipant {
 }
 
 export default function CertificatePortal() {
+  // Temporary: render 404 while certificates are paused. Remove this line to re-enable.
+  notFound();
+
   const [regNumber, setRegNumber] = useState('');
   const [emailInput, setEmailInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -110,7 +74,8 @@ export default function CertificatePortal() {
 
     try {
       const template = new Image();
-      template.src = '/certificate-template.jpeg';
+      // Make sure your file is saved exactly with this name in the /public folder
+      template.src = '/ML_Certificate_template.png'; 
 
       template.onload = async () => {
         const canvas = document.createElement('canvas');
@@ -123,49 +88,49 @@ export default function CertificatePortal() {
         // 1. Draw Template
         ctx.drawImage(template, 0, 0, canvas.width, canvas.height);
 
-        // 2. Format Participant Name
+        // 2. Format Participant Name (Uppercase looks best with Orbitron)
         const nameToPrint = participant.full_name
-          ? participant.full_name
-              .trim()
-              .split(' ')
-              .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-              .join(' ')
-          : 'Participant';
+          ? participant.full_name.trim().toUpperCase()
+          : 'PARTICIPANT';
 
-        // 3. Dynamic Font Sizing
-        let fontSize = Math.round(canvas.height * 0.052);
+        // 3. Dynamic Font Sizing (Reduced sizes for smaller text)
+        let fontSize = Math.round(canvas.height * 0.035); 
         if (nameToPrint.length > 22) {
-          fontSize = Math.round(canvas.height * 0.040);
+          fontSize = Math.round(canvas.height * 0.025); 
         } else if (nameToPrint.length > 16) {
-          fontSize = Math.round(canvas.height * 0.046);
+          fontSize = Math.round(canvas.height * 0.030); 
         }
 
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#181226';
-        ctx.font = `600 ${fontSize}px "Cinzel", "Playfair Display", "Times New Roman", Georgia, serif`;
+        // Wait for Orbitron font to load before drawing to canvas
+        await document.fonts.ready;
 
-        // Position directly above the purple underline (Y ~ 56.5%)
-        const nameYPosition = canvas.height * 0.565;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#FFFFFF'; // White text
+        ctx.font = `bold ${fontSize}px "Orbitron", sans-serif`; // Orbitron Bold
+
+        // Center vertically between "THIS IS TO CERTIFY THAT" and the pink divider line
+        const nameYPosition = canvas.height * 0.472; 
         ctx.fillText(nameToPrint, canvas.width / 2, nameYPosition);
 
         // 4. Generate PDF
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const imgData = canvas.toDataURL('image/png', 0.95);
         const pdf = new jsPDF({
           orientation: 'landscape',
           unit: 'px',
           format: [canvas.width, canvas.height],
         });
 
-        pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
 
         // 5. Trigger Instant Browser Download
-        const fileName = `${participant.registration_number || participant.full_name.replace(/\s+/g, '_')}_Certificate.pdf`;
+        const fileName = `${participant.registration_number || participant.full_name.replace(/\s+/g, '_')}_ML_Workshop_Certificate.pdf`;
         pdf.save(fileName);
 
         // 6. Save backup copy to Supabase Storage in background
         try {
           const pdfBlob = pdf.output('blob');
-          const storagePath = `hello-world-2026/${fileName}`;
+          const storagePath = `ml-workshop-2026/${fileName}`; // Updated storage bucket path
 
           const { error: uploadError } = await supabase.storage
             .from('certificates')
@@ -197,7 +162,7 @@ export default function CertificatePortal() {
       };
 
       template.onerror = () => {
-        setErrorMsg('Failed to load /certificate-template.jpeg from /public folder.');
+        setErrorMsg('Failed to load template image. Ensure ML_Certificate_template.png is in the /public folder.');
         setDownloading(false);
       };
     } catch (err: any) {
@@ -221,7 +186,7 @@ export default function CertificatePortal() {
             Claim Event Certificate
           </h1>
           <p className="text-xs sm:text-sm text-gray-400">
-            Randomize(); Club • <strong>&lt;HELLO WORLD/&gt;</strong> (12-13th August 2026)
+            Randomize(); Club • <strong>ML Workshop</strong> (11th October 2026)
           </p>
           <p className="text-xs text-gray-400">
             Enter your <strong>Registration Number</strong> and registered <strong>Personal Gmail</strong> to verify your certificate.

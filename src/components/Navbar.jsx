@@ -36,7 +36,6 @@ const Navbar = () => {
         { href: "/",           label: "Home"       },
         { href: "/projects",   label: "Projects"   },
         { href: "/events",     label: "Events"     },
-        // TEMPORARILY COMMENTED OUT CERTIFICATES
         // { href: "/certificates", label: "Certificates" },
         { href: "/gallery",    label: "Gallery"    },
         { href: "/teams",      label: "Team"       },

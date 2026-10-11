@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import Floating, { FloatingElement } from "@/fancy/components/image/parallax-floating";
-import { Bebas_Neue, EB_Garamond } from "next/font/google";
+import { Bebas_Neue, EB_Garamond, Orbitron } from "next/font/google";
 import HeroBackground from "@/components/HeroBackground";
 
 const bebasNeue = Bebas_Neue({
@@ -20,6 +20,14 @@ const ebGaramond = EB_Garamond({
   weight: ['400', '500', '600', '700', '800'],
 });
 
+// 1. Add the Orbitron configuration
+const orbitron = Orbitron({
+  weight: '700',
+  subsets: ['latin'],
+  variable: '--font-orbitron',
+  display: 'swap',
+});
+
 export const metadata = {
   title: "Randomize",
   description: "Official website of Randomize MUJ, the official coding club of Manipal University Jaipur",
@@ -28,7 +36,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body className={`relative overflow-x-hidden bg-[#05030B] ${bebasNeue.variable} ${ebGaramond.variable}`}>
+      {/* 2. Add orbitron.variable to the body className */}
+      <body className={`relative overflow-x-hidden bg-[#05030B] ${bebasNeue.variable} ${ebGaramond.variable} ${orbitron.variable}`}>
+        
+        {/* ... Rest of your Floating Elements and Navbar remain exactly the same ... */}
+
         <HeroBackground isFixed={true} />
 
         <Floating 

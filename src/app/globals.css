@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+.dark,
+.dark * {
+  color-scheme: dark;
+}
 
-@theme {
+:root {
   /* Spacing Scale */
   --spacing-xs: 0.25rem;     /* 4px */
   --spacing-sm: 0.5rem;      /* 8px */
@@ -208,9 +211,7 @@
   a:hover {
     color: var(--color-primary-dark);
   }
-
-/* ===== COMPONENT STYLES ===== */
-} /* end @layer base */
+}
 
 @layer components {
   /* Navbar Component */
@@ -895,23 +896,6 @@
       0 0 20px currentColor;
   }
 
-  /* @keyframes neonFlicker {
-    0%, 18%, 22%, 25%, 53%, 57%, 100% {
-      text-shadow: 
-        0 0 5px currentColor,
-        0 0 10px currentColor,
-        0 0 15px currentColor,
-        0 0 20px currentColor;
-    }
-    20%, 24%, 55% {
-      text-shadow: 
-        0 0 2px currentColor,
-        0 0 5px currentColor,
-        0 0 8px currentColor,
-        0 0 12px currentColor;
-    }
-  } */
-
   /* Typography Enhancements */
   .text-enhanced {
     font-weight: 600;
@@ -957,7 +941,6 @@
     background: linear-gradient(135deg, #ffffff 0%, var(--color-brand-purple-violet) 50%, var(--color-brand-deep-pink) 100%);
     background-clip: text;
     -webkit-background-clip: text;
-    /* -webkit-text-fill-color: transparent; */
     text-shadow: 2px 4px 20px rgba(161, 15, 242, 0.3);
   }
 
@@ -1231,4 +1214,4 @@ body {
 }
 .events-modal-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(255,255,255,0.15);
-}
+}

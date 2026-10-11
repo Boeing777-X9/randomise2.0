@@ -50,7 +50,7 @@ export default function EventRegistrationsAdmin() {
   const [adminEmail, setAdminEmail] = useState<string | null>(null);
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterMode, setFilterMode] = useState<'all' | 'missing_mobile' | 'temp_ids' | 'day1' | 'day2'>('all');
+  const [filterMode, setFilterMode] = useState<'all' | 'missing_mobile' | 'temp_ids' | 'present'>('all');
   const router = useRouter();
 
   // Modal Edit State
@@ -214,59 +214,37 @@ export default function EventRegistrationsAdmin() {
     return !p.whatsapp_number || p.whatsapp_number.trim() === '';
   };
 
-  // Day 1 Check-In Toggle
-  const toggleDay1 = async (p: Participant) => {
+  // Attendance Toggle (Mark Present / Remove Check-In)
+  const toggleAttendance = async (p: Participant) => {
     if (isTempRecord(p) || isMissingPhone(p)) {
       showToast('⚠️ Mandatory: Update Mobile Number & Temp details before check-in!');
       handleOpenEdit(p);
       return;
     }
 
-    const nextStatus = !p.day1_confirmed;
+    const isCurrentlyPresent = !!(p.day1_confirmed || p.day2_confirmed);
+    const nextStatus = !isCurrentlyPresent;
+
     setParticipants((prev) =>
-      prev.map((item) => (item.id === p.id ? { ...item, day1_confirmed: nextStatus } : item))
+      prev.map((item) =>
+        item.id === p.id
+          ? { ...item, day1_confirmed: nextStatus, day2_confirmed: nextStatus }
+          : item
+      )
     );
 
     const targetTable = p.event_slug === 'hello_world_26' && !p.event_id ? 'hello_world_26' : 'event_registrations';
 
     const { error } = await supabase
       .from(targetTable)
-      .update({ day1_confirmed: nextStatus })
+      .update({ day1_confirmed: nextStatus, day2_confirmed: nextStatus })
       .eq('id', p.id);
 
     if (error) {
-      showToast('Error syncing Day 1 status: ' + error.message);
+      showToast('Error syncing attendance: ' + error.message);
       fetchRegistrations(true);
     } else {
-      showToast(nextStatus ? 'Day 1 Checked In!' : 'Day 1 Check-In Removed');
-    }
-  };
-
-  // Day 2 Check-In Toggle
-  const toggleDay2 = async (p: Participant) => {
-    if (isTempRecord(p) || isMissingPhone(p)) {
-      showToast('⚠️ Mandatory: Update Mobile Number & Temp details before check-in!');
-      handleOpenEdit(p);
-      return;
-    }
-
-    const nextStatus = !p.day2_confirmed;
-    setParticipants((prev) =>
-      prev.map((item) => (item.id === p.id ? { ...item, day2_confirmed: nextStatus } : item))
-    );
-
-    const targetTable = p.event_slug === 'hello_world_26' && !p.event_id ? 'hello_world_26' : 'event_registrations';
-
-    const { error } = await supabase
-      .from(targetTable)
-      .update({ day2_confirmed: nextStatus })
-      .eq('id', p.id);
-
-    if (error) {
-      showToast('Error syncing Day 2 status: ' + error.message);
-      fetchRegistrations(true);
-    } else {
-      showToast(nextStatus ? 'Day 2 Checked In!' : 'Day 2 Check-In Removed');
+      showToast(nextStatus ? 'Marked Present!' : 'Check-In Removed');
     }
   };
 
@@ -339,8 +317,7 @@ export default function EventRegistrationsAdmin() {
 
       if (filterMode === 'missing_mobile') return isMissingPhone(p);
       if (filterMode === 'temp_ids') return isTempRecord(p);
-      if (filterMode === 'day1') return !!p.day1_confirmed;
-      if (filterMode === 'day2') return !!p.day2_confirmed;
+      if (filterMode === 'present') return !!(p.day1_confirmed || p.day2_confirmed);
 
       return true;
     });
@@ -353,6 +330,11 @@ export default function EventRegistrationsAdmin() {
 
   const tempIdsCount = useMemo(
     () => participants.filter((p) => isTempRecord(p)).length,
+    [participants]
+  );
+
+  const presentCount = useMemo(
+    () => participants.filter((p) => p.day1_confirmed || p.day2_confirmed).length,
     [participants]
   );
 
@@ -437,7 +419,7 @@ export default function EventRegistrationsAdmin() {
         </div>
 
         {/* Stats */}
-        <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-[#0f0b1a] border border-white/10 rounded-2xl p-4">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Registered</p>
             <p className="text-2xl font-black text-white mt-1">{participants.length}</p>
@@ -446,16 +428,10 @@ export default function EventRegistrationsAdmin() {
             <p className="text-xs font-semibold text-red-400 uppercase tracking-wider">Missing Phone</p>
             <p className="text-2xl font-black text-red-400 mt-1">{missingMobileCount}</p>
           </div>
-          <div className="bg-[#0f0b1a] border border-blue-500/30 rounded-2xl p-4 bg-blue-950/10">
-            <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Day 1 Present</p>
-            <p className="text-2xl font-black text-blue-300 mt-1">
-              {participants.filter((p) => p.day1_confirmed).length}
-            </p>
-          </div>
           <div className="bg-[#0f0b1a] border border-green-500/30 rounded-2xl p-4 bg-green-950/10">
-            <p className="text-xs font-semibold text-green-400 uppercase tracking-wider">Day 2 Present</p>
+            <p className="text-xs font-semibold text-green-400 uppercase tracking-wider">Present</p>
             <p className="text-2xl font-black text-green-300 mt-1">
-              {participants.filter((p) => p.day2_confirmed).length}
+              {presentCount}
             </p>
           </div>
         </section>
@@ -512,21 +488,12 @@ export default function EventRegistrationsAdmin() {
             </button>
             <button
               type="button"
-              onClick={() => setFilterMode('day1')}
+              onClick={() => setFilterMode('present')}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
-                filterMode === 'day1' ? 'bg-blue-600 text-white' : 'bg-white/5 border border-white/10 text-gray-400'
+                filterMode === 'present' ? 'bg-green-600 text-white' : 'bg-white/5 border border-white/10 text-gray-400'
               }`}
             >
-              Day 1 Confirmed
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterMode('day2')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
-                filterMode === 'day2' ? 'bg-green-600 text-white' : 'bg-white/5 border border-white/10 text-gray-400'
-              }`}
-            >
-              Day 2 Confirmed
+              Present ({presentCount})
             </button>
           </div>
         </div>
@@ -541,22 +508,21 @@ export default function EventRegistrationsAdmin() {
                   <th className="py-4 px-4 font-bold">Participant Name & Branch</th>
                   <th className="py-4 px-4 font-bold">Emails</th>
                   <th className="py-4 px-4 font-bold">Mobile</th>
-                  <th className="py-4 px-4 font-bold text-center">Day 1 Check-In</th>
-                  <th className="py-4 px-4 font-bold text-center">Day 2 Check-In</th>
+                  <th className="py-4 px-4 font-bold text-center">Attendance</th>
                   <th className="py-4 px-4 font-bold text-right">Edit</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {loading && participants.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-gray-500">
+                    <td colSpan={6} className="py-12 text-center text-gray-500">
                       <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-purple-400" />
                       Loading registrations...
                     </td>
                   </tr>
                 ) : filteredParticipants.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-gray-500">
+                    <td colSpan={6} className="py-12 text-center text-gray-500">
                       No matching participants found.
                     </td>
                   </tr>
@@ -620,33 +586,27 @@ export default function EventRegistrationsAdmin() {
                         </td>
 
                         <td className="py-3.5 px-4 text-center">
-                          <button
-                            type="button"
-                            onClick={() => toggleDay1(p)}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${
-                              p.day1_confirmed
-                                ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
-                                : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'
-                            }`}
-                          >
-                            {p.day1_confirmed ? <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> : <XCircle className="w-3.5 h-3.5 text-gray-600" />}
-                            {p.day1_confirmed ? 'D1 Present' : 'D1 Check-In'}
-                          </button>
-                        </td>
-
-                        <td className="py-3.5 px-4 text-center">
-                          <button
-                            type="button"
-                            onClick={() => toggleDay2(p)}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${
-                              p.day2_confirmed
-                                ? 'bg-green-600/20 border-green-500/50 text-green-300'
-                                : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'
-                            }`}
-                          >
-                            {p.day2_confirmed ? <CheckCircle2 className="w-3.5 h-3.5 text-green-400" /> : <XCircle className="w-3.5 h-3.5 text-gray-600" />}
-                            {p.day2_confirmed ? 'D2 Present' : 'D2 Check-In'}
-                          </button>
+                          {(() => {
+                            const isPresent = !!(p.day1_confirmed || p.day2_confirmed);
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => toggleAttendance(p)}
+                                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                                  isPresent
+                                    ? 'bg-green-600/20 border-green-500/50 text-green-300 hover:bg-green-600/30'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:border-purple-500/40 hover:text-white'
+                                }`}
+                              >
+                                {isPresent ? (
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+                                ) : (
+                                  <XCircle className="w-3.5 h-3.5 text-gray-500" />
+                                )}
+                                {isPresent ? 'Present' : 'Mark Present'}
+                              </button>
+                            );
+                          })()}
                         </td>
 
                         <td className="py-3.5 px-4 text-right">
