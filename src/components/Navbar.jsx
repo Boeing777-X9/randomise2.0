@@ -9,8 +9,7 @@ const Navbar = () => {
     const pathname = usePathname();
     const [scrolled, setScrolled] = useState(false);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
-
-    // Refs
+// Refs
     const linksRowRef = useRef(null);   // the flex row that holds all <Link> elements
     const linkRefs   = useRef({});      // href → <a> element
     const isFirstRef = useRef(true);    // skip spring on initial placement
@@ -213,35 +212,18 @@ const Navbar = () => {
                             {/* ── CTA buttons ───────────────────────────────── */}
                             <div className="hidden lg:flex items-center gap-3">
                                 <motion.button
-                                    onClick={() => { window.location.href = "/membership"; }}
-                                    className="relative px-4 py-2 text-sm font-semibold text-sky-100 rounded-lg overflow-hidden border border-sky-200/70"
+                                    onClick={() => { window.location.href = "/build"; }}
+                                    className="relative px-5 py-2 text-sm font-semibold text-white rounded-lg overflow-hidden border border-pink-500/60 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-sky-500/20 hover:from-pink-500/30 hover:via-purple-500/30 hover:to-sky-500/30 transition-all cursor-pointer"
                                     whileHover={{ scale: 1.04 }}
                                     whileTap={{ scale: 0.96 }}
                                     style={{
-                                        background: "transparent",
-                                        boxShadow: "0 0 12px rgba(186,230,253,0.2)",
+                                        boxShadow: "0 0 14px rgba(244,114,182,0.25)",
                                         transition: "box-shadow 0.2s",
                                     }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 0 22px rgba(186,230,253,0.45)"; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 0 12px rgba(186,230,253,0.2)"; }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 0 24px rgba(244,114,182,0.5)"; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 0 14px rgba(244,114,182,0.25)"; }}
                                 >
-                                    <span className="relative z-10">Become a Member</span>
-                                </motion.button>
-                                
-                                <motion.button
-                                    onClick={() => { window.location.href = "/jwt"; }}
-                                    className="relative px-4 py-2 text-sm font-semibold text-pink-100 rounded-lg overflow-hidden border border-pink-200/70"
-                                    whileHover={{ scale: 1.04 }}
-                                    whileTap={{ scale: 0.96 }}
-                                    style={{
-                                        background: "transparent",
-                                        boxShadow: "0 0 12px rgba(244,114,182,0.2)",
-                                        transition: "box-shadow 0.2s",
-                                    }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 0 22px rgba(244,114,182,0.45)"; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 0 12px rgba(244,114,182,0.2)"; }}
-                                >
-                                    <span className="relative z-10">Join JWT</span>
+                                    <span className="relative z-10">Build with Us</span>
                                 </motion.button>
                             </div>
 
@@ -309,29 +291,15 @@ const Navbar = () => {
 
                                     <div className="border-t border-white/[0.06] mt-2 pt-2 flex flex-col gap-2">
                                         <motion.button
-                                            onClick={() => { window.location.href = "/membership"; setShowMobileMenu(false); }}
-                                            className="w-full px-4 py-3 text-sm font-semibold text-sky-100 rounded-lg border border-sky-200/70"
+                                            onClick={() => { window.location.href = "/build"; setShowMobileMenu(false); }}
+                                            className="w-full px-4 py-3 text-sm font-semibold text-white rounded-lg border border-pink-500/60 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-sky-500/20 cursor-pointer"
                                             style={{
-                                                background: "transparent",
-                                                boxShadow: "0 0 12px rgba(186,230,253,0.2)",
-                                            }}
-                                            whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(186,230,253,0.45)" }}
-                                            whileTap  ={{ scale: 0.97 }}
-                                        >
-                                            Become a Member
-                                        </motion.button>
-                                        
-                                        <motion.button
-                                            onClick={() => { window.location.href = "/jwt"; setShowMobileMenu(false); }}
-                                            className="w-full px-4 py-3 text-sm font-semibold text-pink-100 rounded-lg border border-pink-200/70"
-                                            style={{
-                                                background: "transparent",
-                                                boxShadow: "0 0 12px rgba(244,114,182,0.2)",
+                                                boxShadow: "0 0 14px rgba(244,114,182,0.25)",
                                             }}
                                             whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(244,114,182,0.45)" }}
                                             whileTap  ={{ scale: 0.97 }}
                                         >
-                                            Join JWT
+                                            Build with Us
                                         </motion.button>
                                     </div>
                                 </div>
