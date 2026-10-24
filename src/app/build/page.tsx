@@ -454,7 +454,7 @@ export default function BuildWithUsPage() {
                   APPLICATION SUBMITTED!
                 </h2>
                 <p className="text-gray-400 mb-8 text-sm sm:text-base max-w-lg leading-relaxed">
-                  Thanks, <span className="text-white font-semibold">{successData.fullName}</span>. Your Build with Us project application has been received and saved.
+                  Thanks, <span className="text-white font-semibold">{successData.fullName}</span>. Your project application has been received and saved.
                 </p>
 
                 <div className="w-full max-w-md bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-left space-y-3.5 mb-8">
